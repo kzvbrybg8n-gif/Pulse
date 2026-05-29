@@ -1,0 +1,264 @@
+/* ============================================================
+   PULSE — Design Tokens : couleurs & typographie
+   Esthétique papier / encre · accent vert sobre · éditorial calme
+   ============================================================ */
+
+/* ---- Fonts ---------------------------------------------------
+   Géré par next/font dans src/app/layout.tsx (auto-host, pas de FOIT).
+   Les familles utilisées sont déclarées plus bas via --font-serif,
+   --font-sans, --font-mono.
+   ----------------------------------------------------------- */
+
+:root {
+  /* =========================================================
+     ÉCHELLE DE COULEUR BRUTE  (mode papier / clair)
+     ========================================================= */
+
+  /* Papier — fonds chauds */
+  --paper-0:  #FFFFFF;   /* surface surélevée pure (modales) */
+  --paper-1:  #FEFDFA;   /* cartes */
+  --paper-2:  #FAF8F2;   /* fond d'application */
+  --paper-3:  #F3F0E8;   /* fond creux / zones secondaires */
+  --paper-4:  #EAE6DB;   /* survol des fonds creux */
+
+  /* Encre — textes & traits chauds */
+  --ink-1:    #211F1B;   /* texte primaire */
+  --ink-2:    #57534A;   /* texte secondaire */
+  --ink-3:    #8A857A;   /* texte tertiaire / méta */
+  --ink-4:    #B5AFA2;   /* faible : P4, placeholders, désactivé */
+
+  /* Traits (hairlines) */
+  --line-1:   #E4DFD4;   /* trait standard */
+  --line-2:   #D7D1C4;   /* trait appuyé */
+
+  /* Vert — accent unique (actions, états actifs, séries) */
+  --green-1:  #3A7B58;   /* accent par défaut — lightness relevée pour qu'il vibre sur le papier */
+  --green-2:  #2F6649;   /* survol / appui (plus foncé) */
+  --green-3:  #245A3F;   /* texte vert très contrasté (AA+ sur papier) */
+  --green-soft: #E5EDE6; /* fond doux (puces, remplissage série) */
+  --green-soft-2: #D4E2D6;/* survol fond doux */
+
+  /* Argile — SIGNAL restreint (échéance dépassée, P1 urgent UNIQUEMENT)
+     Désaturé volontairement : ce n'est pas une seconde couleur vive,
+     mais un signal d'alerte sobre, utilisé avec parcimonie. */
+  --clay-1:   #B0573C;
+  --clay-2:   #97462E;
+  --clay-soft:#F3E3DC;
+
+  /* =========================================================
+     RÔLES SÉMANTIQUES  (à utiliser dans les composants)
+     ========================================================= */
+  --bg:           var(--paper-2);
+  --bg-raised:    var(--paper-1);
+  --bg-overlay:   var(--paper-0);
+  --bg-sunken:    var(--paper-3);
+  --bg-hover:     var(--paper-4);
+
+  --fg:           var(--ink-1);
+  --fg-muted:     var(--ink-2);
+  --fg-subtle:    var(--ink-3);
+  --fg-faint:     var(--ink-4);
+
+  --border:       var(--line-1);
+  --border-strong:var(--line-2);
+
+  --accent:       var(--green-1);
+  --accent-hover: var(--green-2);
+  --accent-text:  var(--green-3);
+  --accent-bg:    var(--green-soft);
+  --accent-bg-hover: var(--green-soft-2);
+  --on-accent:    #FBFCFA;          /* texte sur fond vert plein */
+
+  --signal:       var(--clay-1);
+  --signal-hover: var(--clay-2);
+  --signal-bg:    var(--clay-soft);
+
+  --focus-ring:   color-mix(in oklab, var(--green-1) 55%, transparent);
+
+  /* Priorité — lecture immédiate (drapeaux) ------------------ */
+  --prio-1: var(--clay-1);   /* Urgent  — signal argile plein */
+  --prio-2: var(--ink-1);    /* Haute   — encre pleine */
+  --prio-3: var(--ink-3);    /* Moyenne — encre tertiaire */
+  --prio-4: var(--ink-4);    /* Basse   — faible / contour */
+
+  /* =========================================================
+     TYPOGRAPHIE
+     ========================================================= */
+  --font-serif: 'Newsreader', Georgia, 'Times New Roman', serif;
+  --font-sans:  'Hanken Grotesk', system-ui, -apple-system, sans-serif;
+  --font-mono:  'IBM Plex Mono', ui-monospace, 'SFMono-Regular', monospace;
+
+  /* Échelle typographique (ratio ~1.25, base 16px) */
+  --text-xs:   12px;   /* méta, labels mono */
+  --text-sm:   14px;   /* méta, sous-texte */
+  --text-base: 16px;   /* corps, items de liste */
+  --text-md:   18px;   /* corps appuyé */
+  --text-lg:   22px;   /* sous-titres */
+  --text-xl:   28px;   /* titres de section */
+  --text-2xl:  38px;   /* titres de vue */
+  --text-3xl:  52px;   /* display éditorial */
+  --text-4xl:  72px;   /* affichage exceptionnel */
+  --text-timer:112px;  /* chiffres du minuteur Pomodoro */
+
+  --leading-tight: 1.08;
+  --leading-snug:  1.28;
+  --leading-normal:1.5;
+  --leading-relaxed:1.7;
+
+  --tracking-tight: -0.02em;
+  --tracking-normal: 0;
+  --tracking-wide:  0.04em;
+  --tracking-caps:  0.12em;   /* petites capitales / labels */
+
+  /* =========================================================
+     ESPACEMENT  (base 4px — rythme généreux)
+     ========================================================= */
+  --space-0:  0;
+  --space-1:  4px;
+  --space-2:  8px;
+  --space-3:  12px;
+  --space-4:  16px;
+  --space-5:  24px;
+  --space-6:  32px;
+  --space-7:  48px;
+  --space-8:  64px;
+  --space-9:  96px;
+  --space-10:128px;
+
+  /* =========================================================
+     RAYONS  (sobres, papier)
+     ========================================================= */
+  --radius-xs: 3px;
+  --radius-sm: 6px;
+  --radius-md: 10px;
+  --radius-lg: 16px;
+  --radius-pill: 999px;
+
+  /* =========================================================
+     OMBRES  (très douces — le papier privilégie les traits)
+     ========================================================= */
+  --shadow-none: none;
+  --shadow-sm:  0 1px 2px rgba(33,31,27,0.04);
+  --shadow-md:  0 4px 16px -6px rgba(33,31,27,0.10);
+  --shadow-lg:  0 16px 48px -12px rgba(33,31,27,0.16);
+
+  /* =========================================================
+     MOUVEMENT  (calme — fondus doux, pas de rebond)
+     ========================================================= */
+  --ease-out: cubic-bezier(0.22, 0.61, 0.36, 1);
+  --ease-in-out: cubic-bezier(0.45, 0, 0.25, 1);
+  --dur-fast: 120ms;
+  --dur-base: 200ms;
+  --dur-slow: 360ms;
+}
+
+/* =========================================================
+   MODE SOMBRE  (inversion encre / papier — l'accent vert reste)
+   ========================================================= */
+:root[data-theme="dark"], .theme-dark {
+  --paper-0:  #2A2825;
+  --paper-1:  #232220;
+  --paper-2:  #1A1916;
+  --paper-3:  #141312;
+  --paper-4:  #302E2A;
+
+  --ink-1:    #EDEAE1;
+  --ink-2:    #B0ABA0;
+  --ink-3:    #807B70;
+  --ink-4:    #5C5850;
+
+  --line-1:   #34322E;
+  --line-2:   #44413B;
+
+  --green-1:  #5FA877;
+  --green-2:  #72B888;
+  --green-3:  #A7D2B3;
+  --green-soft: #20302A;
+  --green-soft-2: #2A3F34;
+
+  --clay-1:   #CC7A5E;
+  --clay-2:   #D98C70;
+  --clay-soft:#352620;
+
+  --on-accent: #15201A;
+
+  --shadow-sm:  0 1px 2px rgba(0,0,0,0.30);
+  --shadow-md:  0 4px 16px -6px rgba(0,0,0,0.50);
+  --shadow-lg:  0 16px 48px -12px rgba(0,0,0,0.60);
+}
+
+/* =========================================================
+   STYLES SÉMANTIQUES PRÊTS À L'EMPLOI
+   ========================================================= */
+.pulse-h1, h1.pulse {
+  font-family: var(--font-serif);
+  font-size: var(--text-3xl);
+  font-weight: 400;
+  line-height: var(--leading-tight);
+  letter-spacing: var(--tracking-tight);
+  color: var(--fg);
+}
+.pulse-h2 {
+  font-family: var(--font-serif);
+  font-size: var(--text-2xl);
+  font-weight: 400;
+  line-height: var(--leading-tight);
+  letter-spacing: var(--tracking-tight);
+  color: var(--fg);
+}
+.pulse-h3 {
+  font-family: var(--font-serif);
+  font-size: var(--text-xl);
+  font-weight: 500;
+  line-height: var(--leading-snug);
+  color: var(--fg);
+}
+.pulse-title {
+  font-family: var(--font-sans);
+  font-size: var(--text-lg);
+  font-weight: 600;
+  line-height: var(--leading-snug);
+  color: var(--fg);
+}
+.pulse-body {
+  font-family: var(--font-sans);
+  font-size: var(--text-base);
+  font-weight: 400;
+  line-height: var(--leading-normal);
+  color: var(--fg);
+}
+.pulse-body-muted {
+  font-family: var(--font-sans);
+  font-size: var(--text-base);
+  font-weight: 400;
+  line-height: var(--leading-normal);
+  color: var(--fg-muted);
+}
+.pulse-sm {
+  font-family: var(--font-sans);
+  font-size: var(--text-sm);
+  color: var(--fg-muted);
+}
+.pulse-meta {
+  font-family: var(--font-mono);
+  font-size: var(--text-xs);
+  letter-spacing: var(--tracking-wide);
+  color: var(--fg-subtle);
+}
+.pulse-label {
+  font-family: var(--font-sans);
+  font-size: var(--text-xs);
+  font-weight: 600;
+  letter-spacing: var(--tracking-caps);
+  text-transform: uppercase;
+  color: var(--fg-subtle);
+}
+.pulse-timer {
+  font-family: var(--font-serif);
+  font-size: var(--text-timer);
+  font-weight: 300;
+  line-height: 1;
+  letter-spacing: var(--tracking-tight);
+  font-variant-numeric: tabular-nums lining-nums;
+  color: var(--fg);
+}

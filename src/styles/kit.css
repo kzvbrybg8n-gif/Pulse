@@ -1,0 +1,159 @@
+/* ============================================================
+   PULSE UI KIT — styles des composants & layouts
+   (s'appuie sur colors_and_type.css)
+   ============================================================ */
+* { box-sizing: border-box; }
+html, body { margin: 0; padding: 0; }
+body {
+  background: var(--bg);
+  color: var(--fg);
+  font-family: var(--font-sans);
+  -webkit-font-smoothing: antialiased;
+}
+button { font-family: inherit; cursor: pointer; }
+:focus-visible { outline: none; box-shadow: 0 0 0 3px var(--focus-ring); border-radius: var(--radius-sm); }
+
+/* ---- Case à cocher ---------------------------------------- */
+.pk-check {
+  display: inline-flex; align-items: center; justify-content: center;
+  border: 1.75px solid var(--border-strong); border-radius: var(--radius-sm);
+  background: transparent; color: var(--on-accent); flex: none;
+  transition: background var(--dur-base) var(--ease-out), border-color var(--dur-base) var(--ease-out);
+}
+.pk-check.round { border-radius: var(--radius-pill); }
+.pk-check:hover { border-color: var(--accent); }
+.pk-check.done { background: var(--accent); border-color: var(--accent); }
+
+/* ---- Ligne de tâche --------------------------------------- */
+.pk-task {
+  display: flex; align-items: center; gap: var(--space-4);
+  padding: 14px 16px; cursor: pointer; min-height: 56px;
+  transition: background var(--dur-fast) var(--ease-out);
+}
+.pk-task:hover { background: var(--bg-hover); }
+.pk-task + .pk-task { border-top: 1px solid var(--border); }
+.pk-task-mid { flex: 1; min-width: 0; }
+.pk-task-title { font-size: 15px; color: var(--fg); line-height: 1.35; }
+.pk-task-title.done { color: var(--fg-faint); text-decoration: line-through; }
+.pk-task-meta { display: flex; gap: 10px; align-items: center; margin-top: 4px; flex-wrap: wrap; }
+.pk-due { font-family: var(--font-mono); font-size: 11px; color: var(--fg-subtle); white-space: nowrap; }
+.pk-due.late { color: var(--signal); }
+.pk-meta-ico { color: var(--fg-subtle); display: inline-flex; }
+.pk-subcount { font-family: var(--font-mono); font-size: 11px; color: var(--fg-subtle); }
+.pk-tag { font-family: var(--font-mono); font-size: 11px; color: var(--accent-text);
+  background: var(--accent-bg); padding: 1px 8px; border-radius: var(--radius-pill); }
+
+/* ---- Liste / carte ---------------------------------------- */
+.pk-listcard { background: var(--bg-raised); border: 1px solid var(--border);
+  border-radius: var(--radius-md); overflow: hidden; }
+
+/* ---- Saisie rapide ---------------------------------------- */
+.pk-qa { background: var(--bg-overlay); border: 1px solid var(--border-strong);
+  border-radius: var(--radius-lg); padding: 14px 16px; transition: box-shadow var(--dur-base) var(--ease-out); }
+.pk-qa.active { box-shadow: var(--shadow-md); border-color: var(--accent); }
+.pk-qa-line { display: flex; align-items: center; gap: 10px; }
+.pk-qa-spark { color: var(--accent); flex: none; display: inline-flex; }
+.pk-qa-input { flex: 1; border: none; background: transparent; font-size: 16px;
+  color: var(--fg); font-family: var(--font-sans); }
+.pk-qa-input::placeholder { color: var(--fg-faint); }
+.pk-qa-input:focus { outline: none; }
+.pk-qa-go { background: var(--accent); color: var(--on-accent); border: none;
+  font-size: 13px; font-weight: 600; padding: 8px 14px; border-radius: var(--radius-sm); flex: none; }
+.pk-qa-go:hover { background: var(--accent-hover); }
+.pk-qa-detected { display: flex; gap: 8px; align-items: center; flex-wrap: wrap;
+  margin-top: 12px; padding-top: 12px; border-top: 1px solid var(--border); }
+.pk-qa-dlab { font-family: var(--font-mono); font-size: 10px; color: var(--fg-subtle); letter-spacing: .08em; }
+.pk-qa-tok { font-family: var(--font-mono); font-size: 12px; padding: 3px 9px; border-radius: var(--radius-pill);
+  background: var(--accent-bg); color: var(--accent-text); white-space: nowrap; }
+.pk-qa-tok.sig { background: var(--signal-bg); color: var(--signal); }
+
+/* ---- Habitudes -------------------------------------------- */
+.pk-habit { background: var(--bg-raised); border: 1px solid var(--border);
+  border-radius: var(--radius-md); padding: 16px; }
+.pk-habit-top { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+.pk-habit-name { font-size: 15px; font-weight: 600; color: var(--fg); }
+.pk-streak { display: flex; align-items: center; gap: 6px; margin-top: 14px; }
+.pk-streak-val { font-family: var(--font-mono); font-size: 12px; font-weight: 500; white-space: nowrap; }
+.pk-week { display: flex; gap: 5px; margin-top: 12px; }
+.pk-day { width: 16px; height: 16px; border-radius: var(--radius-xs); background: var(--bg-sunken);
+  border: 1px solid var(--border); }
+.pk-day.on { background: var(--accent); border-color: var(--accent); }
+.pk-day.soft { background: var(--accent-bg); border-color: var(--accent-bg); }
+
+/* ---- Détail de tâche -------------------------------------- */
+.pk-detail { padding: 24px 28px; }
+.pk-detail-head { display: flex; align-items: center; justify-content: space-between; }
+.pk-detail-title { font-family: var(--font-serif); font-size: 28px; font-weight: 400;
+  line-height: 1.2; letter-spacing: -0.01em; color: var(--fg); margin: 18px 0 24px; }
+.pk-detail-title.done { color: var(--fg-faint); text-decoration: line-through; }
+.pk-detail-fields { display: flex; flex-direction: column; gap: 2px; }
+.pk-field { display: flex; align-items: center; gap: 12px; padding: 11px 0;
+  border-bottom: 1px solid var(--border); }
+.pk-field-ico { color: var(--fg-subtle); display: inline-flex; width: 18px; }
+.pk-field-lab { font-size: 13px; color: var(--fg-muted); width: 96px; }
+.pk-field-val { font-size: 14px; color: var(--fg); font-weight: 500; }
+.pk-field-val.late { color: var(--signal); font-family: var(--font-mono); font-size: 13px; }
+.pk-subs { margin-top: 24px; }
+.pk-subs-lab, .pk-notes-lab { display: flex; align-items: center; gap: 6px; font-size: 11px;
+  font-weight: 600; letter-spacing: .1em; text-transform: uppercase; color: var(--fg-subtle); margin-bottom: 10px; }
+.pk-sub { display: flex; align-items: center; gap: 12px; padding: 8px 0; }
+.pk-sub-title { font-size: 14px; color: var(--fg); }
+.pk-sub-title.done { color: var(--fg-faint); text-decoration: line-through; }
+.pk-notes { margin-top: 24px; }
+.pk-notes-body { font-size: 14px; line-height: 1.6; color: var(--fg); padding: 12px 14px;
+  background: var(--bg-sunken); border: 1px solid var(--border); border-radius: var(--radius-sm); }
+.pk-notes-body.empty { color: var(--fg-faint); }
+
+/* ---- Icon buttons ----------------------------------------- */
+.pk-icon-btn { display: inline-flex; align-items: center; justify-content: center;
+  width: 34px; height: 34px; border-radius: var(--radius-sm); border: none; background: transparent;
+  color: var(--fg-muted); transition: background var(--dur-fast) var(--ease-out); }
+.pk-icon-btn:hover { background: var(--bg-hover); color: var(--fg); }
+.pk-icon-btn.lg { width: 44px; height: 44px; }
+
+/* ---- Segmented (Focus/Pause) ------------------------------ */
+.pk-seg { display: inline-flex; background: var(--bg-sunken); border: 1px solid var(--border);
+  border-radius: var(--radius-pill); padding: 3px; }
+.pk-seg button { border: none; background: transparent; color: var(--fg-muted);
+  font-size: 13px; font-weight: 600; padding: 7px 20px; border-radius: var(--radius-pill);
+  transition: all var(--dur-fast) var(--ease-out); }
+.pk-seg button.active { background: var(--accent); color: var(--on-accent); }
+
+/* ---- Pomodoro --------------------------------------------- */
+.pk-pomo { display: flex; flex-direction: column; align-items: center; gap: 28px; }
+.pk-dial { position: relative; display: flex; align-items: center; justify-content: center; }
+.pk-dial-center { position: absolute; inset: 0; display: flex; flex-direction: column;
+  align-items: center; justify-content: center; gap: 4px; }
+.pk-dial-mode { font-size: 11px; font-weight: 600; letter-spacing: .14em; text-transform: uppercase; color: var(--accent); }
+.pk-dial-time { font-family: var(--font-serif); font-weight: 300; font-size: 64px; line-height: 1;
+  letter-spacing: -0.02em; font-variant-numeric: tabular-nums lining-nums; color: var(--fg); }
+.pk-dial-task { font-size: 13px; color: var(--fg-subtle); max-width: 200px; text-align: center;
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.breathing { animation: pk-breathe 4s var(--ease-in-out) infinite; }
+@keyframes pk-breathe { 0%,100% { opacity: 1; } 50% { opacity: .82; } }
+.pk-pomo-ctrls { display: flex; align-items: center; gap: 20px; }
+.pk-play { width: 64px; height: 64px; border-radius: var(--radius-pill); border: none;
+  background: var(--accent); color: var(--on-accent); display: inline-flex; align-items: center;
+  justify-content: center; box-shadow: var(--shadow-md); transition: background var(--dur-fast) var(--ease-out), transform var(--dur-fast) var(--ease-out); }
+.pk-play:hover { background: var(--accent-hover); }
+.pk-play:active { transform: translateY(1px); }
+.pk-pomo-task-pick { display: flex; flex-direction: column; gap: 8px; align-items: center; }
+.pk-label-mini { font-size: 10px; font-weight: 600; letter-spacing: .12em; text-transform: uppercase; color: var(--fg-subtle); }
+.pk-select { font-family: var(--font-sans); font-size: 14px; color: var(--fg); background: var(--bg-raised);
+  border: 1px solid var(--border-strong); border-radius: var(--radius-sm); padding: 9px 14px; }
+.pk-pomo-hist { width: 100%; max-width: 360px; display: flex; flex-direction: column; gap: 4px; }
+.pk-hist-row { display: flex; align-items: center; gap: 10px; padding: 9px 0; border-bottom: 1px solid var(--border); }
+.pk-hist-dot { width: 7px; height: 7px; border-radius: 50%; background: var(--accent); flex: none; }
+.pk-hist-task { flex: 1; font-size: 14px; color: var(--fg); }
+.pk-hist-meta { font-family: var(--font-mono); font-size: 11px; color: var(--fg-subtle); }
+
+/* ---- Headers / labels génériques -------------------------- */
+.pk-view-head { display: flex; align-items: baseline; justify-content: space-between; margin-bottom: 8px; }
+.pk-view-title { font-family: var(--font-serif); font-size: 52px; font-weight: 300; letter-spacing: -0.025em; line-height: 1.04; color: var(--fg); }
+.pk-view-sub { font-family: var(--font-serif); font-style: italic; font-weight: 300; font-size: 18px; color: var(--fg-muted); }
+.pk-view-count { font-family: var(--font-mono); font-size: 13px; color: var(--fg-subtle); }
+.pk-section-lab { font-size: 11px; font-weight: 600; letter-spacing: .12em; text-transform: uppercase;
+  color: var(--fg-subtle); margin: 28px 0 10px; }
+.pk-empty { text-align: center; padding: 48px 20px; color: var(--fg-subtle); }
+.pk-empty .pk-empty-title { font-family: var(--font-serif); font-size: 22px; color: var(--fg-muted); }
+.pk-empty .pk-empty-sub { font-family: var(--font-serif); font-style: italic; font-weight: 300; font-size: 17px; margin-top: 8px; }

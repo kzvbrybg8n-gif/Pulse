@@ -1,0 +1,66 @@
+/* ============================================================
+   PULSE — Feuille globale
+   Ordre des imports : Tailwind d'abord, puis tokens (source de
+   vérité), puis kit. Le bloc @theme inline expose nos tokens
+   à Tailwind sous forme d'utilitaires (bg-paper-2, text-accent…).
+   « inline » conserve les références var() au lieu d'en figer
+   la valeur — ainsi le thème sombre continue de fonctionner.
+   ============================================================ */
+
+@import "tailwindcss";
+
+@import "../styles/tokens.css";
+@import "../styles/kit.css";
+
+@theme inline {
+  /* Couleurs — papier / encre / accents */
+  --color-paper-0: var(--paper-0);
+  --color-paper-1: var(--paper-1);
+  --color-paper-2: var(--paper-2);
+  --color-paper-3: var(--paper-3);
+  --color-paper-4: var(--paper-4);
+
+  --color-ink-1: var(--ink-1);
+  --color-ink-2: var(--ink-2);
+  --color-ink-3: var(--ink-3);
+  --color-ink-4: var(--ink-4);
+
+  --color-line-1: var(--line-1);
+  --color-line-2: var(--line-2);
+
+  --color-accent: var(--green-1);
+  --color-accent-hover: var(--green-2);
+  --color-accent-text: var(--green-3);
+  --color-accent-bg: var(--green-soft);
+  --color-accent-bg-hover: var(--green-soft-2);
+  --color-on-accent: var(--on-accent);
+
+  --color-signal: var(--clay-1);
+  --color-signal-hover: var(--clay-2);
+  --color-signal-bg: var(--clay-soft);
+
+  /* Rôles sémantiques (mêmes alias que les tokens) */
+  --color-bg: var(--bg);
+  --color-bg-raised: var(--bg-raised);
+  --color-bg-overlay: var(--bg-overlay);
+  --color-bg-sunken: var(--bg-sunken);
+  --color-bg-hover: var(--bg-hover);
+  --color-fg: var(--fg);
+  --color-fg-muted: var(--fg-muted);
+  --color-fg-subtle: var(--fg-subtle);
+  --color-fg-faint: var(--fg-faint);
+  --color-border: var(--border);
+  --color-border-strong: var(--border-strong);
+
+  /* Familles de fontes (variables alimentées par next/font dans layout.tsx) */
+  --font-serif: var(--font-serif);
+  --font-sans: var(--font-sans);
+  --font-mono: var(--font-mono);
+
+  /* Rayons */
+  --radius-xs: var(--radius-xs);
+  --radius-sm: var(--radius-sm);
+  --radius-md: var(--radius-md);
+  --radius-lg: var(--radius-lg);
+  --radius-pill: var(--radius-pill);
+}
