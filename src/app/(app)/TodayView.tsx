@@ -180,6 +180,7 @@ export function TodayView({ initialOverdue, initialToday, dateLabel, userId }: P
                 tags: task.tags,
                 recur: task.recur,
                 reminder: false,
+                remindAt: null,
                 note: false,
                 subtasks: [],
                 expanded: false,

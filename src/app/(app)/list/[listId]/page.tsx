@@ -27,7 +27,7 @@ export default async function ListPage({
   // Tâches de cette liste (sauf archivées)
   const { data, error } = await supabase
     .from("tasks")
-    .select("id, title, status, prio, due_at, recur_rule, note, subtasks(*), task_tags(tags(name))")
+    .select("id, title, status, prio, due_at, recur_rule, note, subtasks(*), task_tags(tags(name)), reminders(remind_at)")
     .eq("list_id", listId)
     .neq("status", "archived")
     .order("prio", { ascending: true })

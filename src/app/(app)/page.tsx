@@ -15,7 +15,7 @@ export default async function TodayPage() {
 
   const { data, error } = await supabase
     .from("tasks")
-    .select("id, title, status, prio, due_at, recur_rule, note, subtasks(*), task_tags(tags(name))")
+    .select("id, title, status, prio, due_at, recur_rule, note, subtasks(*), task_tags(tags(name)), reminders(remind_at)")
     .neq("status", "archived")
     .order("due_at", { ascending: true })
     .order("order_index", { ascending: true });

@@ -21,6 +21,7 @@ export type TaskRow = {
     order_index: number;
   }[];
   task_tags: { tags: { name: string } | null }[];
+  reminders?: { remind_at: string }[];
 };
 
 const WEEKDAYS = ["dim.", "lun.", "mar.", "mer.", "jeu.", "ven.", "sam."];
@@ -97,7 +98,8 @@ export function taskFromRow(row: TaskRow, now: Date): Task {
     late,
     tags,
     recur: row.recur_rule,
-    reminder: false, // table reminders câblée en Phase 8
+    reminder: (row.reminders?.length ?? 0) > 0,
+    remindAt: row.reminders?.[0]?.remind_at ?? null,
     note: Boolean(row.note && row.note.trim().length > 0),
     noteContent: row.note ?? null,
     subtasks,

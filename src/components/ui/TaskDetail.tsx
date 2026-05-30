@@ -16,6 +16,7 @@ import {
 } from "@/components/icons";
 import { Checkbox } from "@/components/ui/Checkbox";
 import { PriorityFlag } from "@/components/ui/PriorityFlag";
+import { ensurePushSubscribed } from "@/components/ui/PushManager";
 import { createClient } from "@/lib/supabase/client";
 import type { Priority, Subtask, Task } from "@/lib/types";
 
@@ -29,6 +30,7 @@ type DetailData = {
   status: string;
   prio: Priority;
   due_at: string | null;
+  remind_at: string | null;
   recur_rule: string | null;
   note: string | null;
   list_id: string | null;
@@ -85,6 +87,8 @@ export function TaskDetail({ taskId, userId, onClose, onUpdate, onDelete }: Prop
   const [editNote, setEditNote] = useState("");
   const [editingDue, setEditingDue] = useState(false);
   const [editDue, setEditDue] = useState("");
+  const [editingRemind, setEditingRemind] = useState(false);
+  const [editRemind, setEditRemind] = useState("");
   const [editingRecur, setEditingRecur] = useState(false);
   const [editRecur, setEditRecur] = useState("");
   const [newSubtask, setNewSubtask] = useState("");
@@ -108,7 +112,7 @@ export function TaskDetail({ taskId, userId, onClose, onUpdate, onDelete }: Prop
     supabase
       .from("tasks")
       .select(
-        "id, title, status, prio, due_at, recur_rule, note, list_id, created_at, lists(name, folders(name)), subtasks(id, title, done, order_index), task_tags(tags(id, name))",
+        "id, title, status, prio, due_at, recur_rule, note, list_id, created_at, lists(name, folders(name)), subtasks(id, title, done, order_index), task_tags(tags(id, name)), reminders(remind_at)",
       )
       .eq("id", taskId)
       .single()
@@ -128,12 +132,15 @@ export function TaskDetail({ taskId, userId, onClose, onUpdate, onDelete }: Prop
           .slice()
           .sort((a, b) => a.order_index - b.order_index);
 
+        const reminders = r.reminders as { remind_at: string }[] | null ?? [];
+
         const d: DetailData = {
           id: r.id as string,
           title: r.title as string,
           status: r.status as string,
           prio: (r.prio as number) as Priority,
           due_at: r.due_at as string | null,
+          remind_at: reminders[0]?.remind_at ?? null,
           recur_rule: r.recur_rule as string | null,
           note: r.note as string | null,
           list_id: r.list_id as string | null,
@@ -196,6 +203,29 @@ export function TaskDetail({ taskId, userId, onClose, onUpdate, onDelete }: Prop
     setDetail((d) => d && { ...d, recur_rule });
     setEditingRecur(false);
     onUpdate(detail.id, { recur: recur_rule });
+  }
+
+  async function saveReminder() {
+    if (!detail || !editRemind) {
+      setEditingRemind(false);
+      return;
+    }
+    const remind_at = new Date(editRemind).toISOString();
+    await ensurePushSubscribed();
+    await supabase.from("reminders").upsert(
+      { user_id: userId, task_id: detail.id, remind_at, sent_at: null },
+      { onConflict: "task_id" },
+    );
+    setDetail((d) => d && { ...d, remind_at });
+    setEditingRemind(false);
+    onUpdate(detail.id, { reminder: true, remindAt: remind_at });
+  }
+
+  async function clearReminder() {
+    if (!detail) return;
+    await supabase.from("reminders").delete().eq("task_id", detail.id).eq("user_id", userId);
+    setDetail((d) => d && { ...d, remind_at: null });
+    onUpdate(detail.id, { reminder: false, remindAt: null });
   }
 
   // ── Sous-tâches ────────────────────────────────────────
@@ -423,11 +453,49 @@ export function TaskDetail({ taskId, userId, onClose, onUpdate, onDelete }: Prop
               </div>
             </div>
 
-            {/* Rappel (placeholder Phase 8) */}
+            {/* Rappel */}
             <div className="pd-prop">
-              <span className="pd-prop-ico"><IconBell size={15} /></span>
+              <span className="pd-prop-ico">
+                <IconBell size={15} style={{ color: detail.remind_at ? "var(--accent-text)" : undefined }} />
+              </span>
               <span className="pd-prop-lbl">Rappel</span>
-              <span className="pd-prop-val faint">Pas de rappel</span>
+              {editingRemind ? (
+                <input
+                  type="datetime-local"
+                  className="pd-due-input"
+                  value={editRemind}
+                  autoFocus
+                  onChange={(e) => setEditRemind(e.target.value)}
+                  onBlur={() => void saveReminder()}
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter") void saveReminder();
+                    if (e.key === "Escape") setEditingRemind(false);
+                  }}
+                />
+              ) : (
+                <span
+                  className={"pd-prop-val " + (detail.remind_at ? "" : "faint")}
+                  role="button"
+                  tabIndex={0}
+                  onClick={() => {
+                    setEditRemind(detail.remind_at ? isoToDatetimeLocal(detail.remind_at) : "");
+                    setEditingRemind(true);
+                  }}
+                  onKeyDown={(e) => e.key === "Enter" && setEditingRemind(true)}
+                >
+                  {detail.remind_at ? formatDueDisplay(detail.remind_at) : "Pas de rappel"}
+                </span>
+              )}
+              {detail.remind_at && !editingRemind && (
+                <button
+                  type="button"
+                  className="pd-prop-clear"
+                  onClick={() => void clearReminder()}
+                  aria-label="Supprimer le rappel"
+                >
+                  <IconX size={12} />
+                </button>
+              )}
             </div>
 
             {/* Récurrence */}

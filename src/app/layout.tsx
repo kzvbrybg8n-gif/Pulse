@@ -27,6 +27,7 @@ const mono = IBM_Plex_Mono({
 export const metadata: Metadata = {
   title: "Pulse",
   description: "Tâches, habitudes, focus — pour une seule personne.",
+  manifest: "/manifest.webmanifest",
 };
 
 export default function RootLayout({
@@ -34,6 +35,9 @@ export default function RootLayout({
 }: Readonly<{ children: React.ReactNode }>) {
   return (
     <html lang="fr">
+      <head>
+        <meta name="theme-color" content="#3a5a40" />
+      </head>
       <body className={`${serif.variable} ${sans.variable} ${mono.variable}`}>
         {children}
       </body>

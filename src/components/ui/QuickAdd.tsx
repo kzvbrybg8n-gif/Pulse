@@ -127,6 +127,7 @@ export function QuickAdd({ userId, listId = null, onAdd, defaultValue = "" }: Pr
         tags: result.tags,
         recur: null,
         reminder: false,
+        remindAt: null,
         note: false,
         subtasks: [],
         expanded: false,

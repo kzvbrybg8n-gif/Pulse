@@ -1,5 +1,6 @@
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
+import { PushManager } from "@/components/ui/PushManager";
 
 /**
  * Layout des routes applicatives protégées.
@@ -19,5 +20,10 @@ export default async function AppLayout({
     redirect("/login");
   }
 
-  return children;
+  return (
+    <>
+      <PushManager />
+      {children}
+    </>
+  );
 }
