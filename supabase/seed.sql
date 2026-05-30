@@ -1,0 +1,23 @@
+-- ============================================================
+-- Pulse — Seed (Phase 2)
+-- ============================================================
+-- Aucune donnée seedée à ce stade.
+--
+-- En Phase 2, on a uniquement besoin du schéma + RLS. Le seed
+-- viendra en Phase 3 (auth câblée → vrais user_id depuis
+-- auth.users). Ce fichier reste en place pour structurer le repo.
+--
+-- Si tu veux quand même injecter de la donnée de test pour
+-- valider les requêtes côté Phase 2 :
+--   1. Crée deux users via Dashboard → Authentication → Users
+--   2. Récupère leurs UUIDs
+--   3. Lance dans le SQL editor :
+--      insert into public.tasks (user_id, title)
+--      values ('<uuid-alice>', 'Tâche test Alice');
+--   (l'insert direct via le rôle postgres contourne RLS — c'est
+--    attendu pour seeder.)
+--
+-- ATTENTION : `supabase db reset` n'a pas de sens en mode cloud
+-- (il drop la DB). En cloud on n'exécute QUE `supabase db push`
+-- pour appliquer les migrations incrémentales.
+-- ============================================================
