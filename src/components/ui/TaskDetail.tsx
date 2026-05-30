@@ -212,13 +212,18 @@ export function TaskDetail({ taskId, userId, onClose, onUpdate, onDelete }: Prop
     }
     const remind_at = new Date(editRemind).toISOString();
     await ensurePushSubscribed();
-    await supabase.from("reminders").upsert(
-      { user_id: userId, task_id: detail.id, remind_at, sent_at: null },
-      { onConflict: "task_id" },
-    );
-    setDetail((d) => d && { ...d, remind_at });
+    // Supprimer l'éventuel rappel existant puis insérer (pas d'upsert : pas de UNIQUE sur task_id)
+    await supabase.from("reminders").delete().eq("task_id", detail.id).eq("user_id", userId);
+    const { error } = await supabase.from("reminders").insert({
+      user_id: userId,
+      task_id: detail.id,
+      remind_at,
+    });
+    if (!error) {
+      setDetail((d) => d && { ...d, remind_at });
+      onUpdate(detail.id, { reminder: true, remindAt: remind_at });
+    }
     setEditingRemind(false);
-    onUpdate(detail.id, { reminder: true, remindAt: remind_at });
   }
 
   async function clearReminder() {

@@ -58,8 +58,13 @@ export async function GET(req: Request) {
       .eq("user_id", reminder.user_id);
 
     if (!subs || subs.length === 0) {
-      // Marquer envoyé même sans subscription (rappel consommé).
-      await supabase.from("reminders").update({ sent_at: now }).eq("id", reminder.id);
+      // Pas de subscription → on skip ce rappel (il sera retenté au prochain cron).
+      // Si le rappel a plus de 24h de retard, on le marque comme envoyé pour éviter
+      // une accumulation infinie.
+      const age = Date.now() - new Date(reminder.remind_at).getTime();
+      if (age > 24 * 60 * 60 * 1000) {
+        await supabase.from("reminders").update({ sent_at: now }).eq("id", reminder.id);
+      }
       continue;
     }
 

@@ -7,7 +7,13 @@
  */
 
 self.addEventListener("push", (event) => {
-  const data = event.data?.json() ?? {};
+  let data = {};
+  try {
+    data = event.data?.json() ?? {};
+  } catch {
+    // DevTools envoie du texte brut — on l'utilise comme titre
+    data = { title: event.data?.text() ?? "Pulse" };
+  }
   event.waitUntil(
     self.registration.showNotification(data.title ?? "Pulse", {
       body: data.body ?? "",
