@@ -8,6 +8,7 @@ import { QuickAdd } from "@/components/ui/QuickAdd";
 import { TaskDetail } from "@/components/ui/TaskDetail";
 import { TaskItem } from "@/components/ui/TaskItem";
 import { createClient } from "@/lib/supabase/client";
+import { useRealtimeTasks } from "@/hooks/useRealtimeTasks";
 import { formatDueLabel } from "@/lib/tasks/fromDb";
 import { nextOccurrence, parseRRule } from "@/lib/recurrence";
 import type { Task } from "@/lib/types";
@@ -115,6 +116,24 @@ export function TodayView({ initialOverdue, initialToday, dateLabel, userId }: P
     setOverdue((ts) => ts.filter((t) => t.id !== id));
     setToday((ts) => ts.filter((t) => t.id !== id));
   }
+
+  // Synchro Realtime — changements depuis un autre appareil ou onglet
+  useRealtimeTasks(supabase, userId, {
+    onUpdate: (task) => {
+      setOverdue((ts) => ts.map((t) => (t.id === task.id ? task : t)));
+      setToday((ts) => ts.map((t) => (t.id === task.id ? task : t)));
+    },
+    onDelete: handleTaskDelete,
+    onInsert: (task) => {
+      const now = new Date();
+      const todayEnd = new Date(now.getFullYear(), now.getMonth(), now.getDate() + 1);
+      if (task.dueAt && new Date(task.dueAt) < now) {
+        setOverdue((ts) => [task, ...ts]);
+      } else if (task.dueAt && new Date(task.dueAt) < todayEnd) {
+        setToday((ts) => [...ts, task]);
+      }
+    },
+  });
 
   function makeToggleTask(
     list: Task[],

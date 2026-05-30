@@ -8,6 +8,7 @@ import { QuickAdd } from "@/components/ui/QuickAdd";
 import { TaskDetail } from "@/components/ui/TaskDetail";
 import { TaskItem } from "@/components/ui/TaskItem";
 import { createClient } from "@/lib/supabase/client";
+import { useRealtimeTasks } from "@/hooks/useRealtimeTasks";
 import { dayLabelFor, localDateStr, type DayGroup } from "@/lib/tasks/groupByDay";
 import type { Task } from "@/lib/types";
 
@@ -70,6 +71,34 @@ export function UpcomingView({ initialGroups, userId }: Props) {
         .filter((g) => g.tasks.length > 0),
     );
   }
+
+  // Synchro Realtime — changements depuis un autre appareil ou onglet
+  useRealtimeTasks(supabase, userId, {
+    onUpdate: (task) =>
+      setGroups((gs) =>
+        gs.map((g) => ({
+          ...g,
+          tasks: g.tasks.map((t) => (t.id === task.id ? task : t)),
+        })),
+      ),
+    onDelete: handleTaskDelete,
+    onInsert: (task) => {
+      // Ajouter dans le bon groupe si la tâche tombe dans la fenêtre upcoming
+      if (!task.dueAt) return;
+      const taskDateStr = localDateStr(new Date(task.dueAt));
+      const now = new Date();
+      setGroups((gs) => {
+        const existing = gs.find((g) => g.dateStr === taskDateStr);
+        if (existing) {
+          return gs.map((g) =>
+            g.dateStr === taskDateStr ? { ...g, tasks: [...g.tasks, task] } : g,
+          );
+        }
+        const newGroup: import("@/lib/tasks/groupByDay").DayGroup = { dateStr: taskDateStr, dayLabel: dayLabelFor(new Date(task.dueAt!), now), tasks: [task] };
+        return [...gs, newGroup].sort((a, b) => a.dateStr.localeCompare(b.dateStr));
+      });
+    },
+  });
 
   function handleTaskAdded(task: Task) {
     if (!task.dueAt) return;

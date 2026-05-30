@@ -8,6 +8,7 @@ import { QuickAdd } from "@/components/ui/QuickAdd";
 import { TaskDetail } from "@/components/ui/TaskDetail";
 import { TaskItem } from "@/components/ui/TaskItem";
 import { createClient } from "@/lib/supabase/client";
+import { useRealtimeTasks } from "@/hooks/useRealtimeTasks";
 import type { Task } from "@/lib/types";
 
 function MobileQuickAddSheet({
@@ -60,6 +61,13 @@ export function AllView({ initialTasks, userId }: Props) {
   function handleTaskDelete(id: string) {
     setTasks((ts) => ts.filter((t) => t.id !== id));
   }
+
+  // Synchro Realtime — changements depuis un autre appareil ou onglet
+  useRealtimeTasks(supabase, userId, {
+    onUpdate: (task) => setTasks((ts) => ts.map((t) => (t.id === task.id ? task : t))),
+    onDelete: handleTaskDelete,
+    onInsert: (task) => setTasks((ts) => [task, ...ts]),
+  });
 
   async function toggleTask(id: string) {
     const task = tasks.find((t) => t.id === id);

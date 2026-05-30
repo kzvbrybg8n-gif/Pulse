@@ -1,6 +1,7 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
 import { IconPlus } from "@/components/icons";
 import { MobileTabs } from "@/components/layout/MobileTabs";
 import { Sidebar } from "@/components/layout/Sidebar";
@@ -39,6 +40,54 @@ export function HabitsView({ initialHabits, userId }: Props) {
   const [supabase] = useState(() => createClient());
   const [habits, setHabits] = useState<Habit[]>(initialHabits);
   const [modalTarget, setModalTarget] = useState<ModalTarget>(null);
+  const router = useRouter();
+
+  // Synchro Realtime — changements depuis un autre appareil ou onglet
+  useEffect(() => {
+    const todayStr = localDateStr(new Date());
+    const channel = supabase
+      .channel(`habits:${userId}`)
+      .on(
+        "postgres_changes",
+        { event: "*", schema: "public", table: "habits", filter: `user_id=eq.${userId}` },
+        () => {
+          // Création / suppression / renommage → re-fetch server
+          router.refresh();
+        },
+      )
+      .on(
+        "postgres_changes",
+        { event: "INSERT", schema: "public", table: "habit_logs", filter: `user_id=eq.${userId}` },
+        (payload) => {
+          const row = payload.new as { habit_id: string; day: string };
+          if (row.day !== todayStr) return;
+          // Marquer l'habitude comme cochée localement (autre appareil a coché)
+          setHabits((hs) =>
+            hs.map((h) =>
+              h.id === row.habit_id ? { ...h, checkedToday: true, weekDots: [...h.weekDots.slice(0, 6), true] } : h,
+            ),
+          );
+        },
+      )
+      .on(
+        "postgres_changes",
+        { event: "DELETE", schema: "public", table: "habit_logs", filter: `user_id=eq.${userId}` },
+        (payload) => {
+          const row = payload.old as { habit_id: string; day: string };
+          if (row.day !== todayStr) return;
+          setHabits((hs) =>
+            hs.map((h) =>
+              h.id === row.habit_id ? { ...h, checkedToday: false, weekDots: [...h.weekDots.slice(0, 6), false] } : h,
+            ),
+          );
+        },
+      )
+      .subscribe();
+
+    return () => {
+      void supabase.removeChannel(channel);
+    };
+  }, [supabase, userId, router]);
 
   async function toggleCheckin(id: string) {
     const habit = habits.find((h) => h.id === id);
