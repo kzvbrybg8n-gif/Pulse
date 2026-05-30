@@ -99,10 +99,11 @@ export function TodayView({ initialOverdue, initialToday, dateLabel, userId }: P
   const [selectedTaskId, setSelectedTaskId] = useState<string | null>(null);
 
   function handleTaskAdded(task: Task) {
+    const exists = (ts: Task[]) => ts.some((t) => t.id === task.id);
     if (task.late) {
-      setOverdue((ts) => [task, ...ts]);
+      setOverdue((ts) => (exists(ts) ? ts : [task, ...ts]));
     } else {
-      setToday((ts) => [...ts, task]);
+      setToday((ts) => (exists(ts) ? ts : [...ts, task]));
     }
   }
 
@@ -125,12 +126,15 @@ export function TodayView({ initialOverdue, initialToday, dateLabel, userId }: P
     },
     onDelete: handleTaskDelete,
     onInsert: (task) => {
+      // L'ajout optimiste local (QuickAdd / récurrence) précède souvent cet
+      // événement Realtime sur l'appareil émetteur : on déduplique par id.
+      const exists = (ts: Task[]) => ts.some((t) => t.id === task.id);
       const now = new Date();
       const todayEnd = new Date(now.getFullYear(), now.getMonth(), now.getDate() + 1);
       if (task.dueAt && new Date(task.dueAt) < now) {
-        setOverdue((ts) => [task, ...ts]);
+        setOverdue((ts) => (exists(ts) ? ts : [task, ...ts]));
       } else if (task.dueAt && new Date(task.dueAt) < todayEnd) {
-        setToday((ts) => [...ts, task]);
+        setToday((ts) => (exists(ts) ? ts : [...ts, task]));
       }
     },
   });
@@ -162,13 +166,15 @@ export function TodayView({ initialOverdue, initialToday, dateLabel, userId }: P
         try {
           const spec = parseRRule(task.recur);
           const now = new Date();
-          const fromDate = task.due
-            ? (() => {
-                // Chercher le due_at réel dans la DB — approximation : recalcul depuis now
-                return now;
-              })()
-            : now;
-          const nextDue = nextOccurrence(spec, fromDate);
+          // Prochaine occurrence calculée depuis l'échéance réelle de la tâche
+          // (préserve l'heure/le jour d'origine) ; faute d'échéance, depuis maintenant.
+          // Pour une tâche en retard, on avance jusqu'à dépasser le présent.
+          let nextDue = nextOccurrence(spec, task.dueAt ? new Date(task.dueAt) : now);
+          let guard = 0;
+          while (nextDue <= now && guard < 1000) {
+            nextDue = nextOccurrence(spec, nextDue);
+            guard++;
+          }
 
           const { data: newTask } = await supabase
             .from("tasks")
@@ -204,7 +210,7 @@ export function TodayView({ initialOverdue, initialToday, dateLabel, userId }: P
                 subtasks: [],
                 expanded: false,
               };
-              setToday((ts) => [...ts, nextTask]);
+              setToday((ts) => (ts.some((t) => t.id === nextTask.id) ? ts : [...ts, nextTask]));
             }
           }
         } catch {

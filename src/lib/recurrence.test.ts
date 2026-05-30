@@ -103,4 +103,32 @@ describe("nextOccurrence — MONTHLY", () => {
     const next = nextOccurrence(spec, from);
     expect(next).toEqual(new Date(2026, 6, 15, 9, 0, 0)); // 15 juillet
   });
+
+  it("le 31 depuis le 31 janvier → 28 février (clamp, pas de débordement)", () => {
+    const from = new Date(2026, 0, 31, 9, 0, 0); // 31 janv. 2026 (année non bissextile)
+    const spec = parseRRule("FREQ=MONTHLY;BYMONTHDAY=31");
+    const next = nextOccurrence(spec, from);
+    expect(next).toEqual(new Date(2026, 1, 28, 9, 0, 0)); // 28 février, pas le 3 mars
+  });
+
+  it("le 31 depuis le 15 avril → 30 avril (clamp au dernier jour du mois)", () => {
+    const from = new Date(2026, 3, 15, 9, 0, 0); // 15 avril
+    const spec = parseRRule("FREQ=MONTHLY;BYMONTHDAY=31");
+    const next = nextOccurrence(spec, from);
+    expect(next).toEqual(new Date(2026, 3, 30, 9, 0, 0)); // 30 avril
+  });
+
+  it("le 31 depuis le 31 mars → 30 avril (mois suivant clampé)", () => {
+    const from = new Date(2026, 2, 31, 9, 0, 0); // 31 mars
+    const spec = parseRRule("FREQ=MONTHLY;BYMONTHDAY=31");
+    const next = nextOccurrence(spec, from);
+    expect(next).toEqual(new Date(2026, 3, 30, 9, 0, 0)); // 30 avril
+  });
+
+  it("le 29 depuis février 2028 (bissextile) → 29 février", () => {
+    const from = new Date(2028, 1, 10, 9, 0, 0); // 10 févr. 2028 (bissextile)
+    const spec = parseRRule("FREQ=MONTHLY;BYMONTHDAY=29");
+    const next = nextOccurrence(spec, from);
+    expect(next).toEqual(new Date(2028, 1, 29, 9, 0, 0)); // 29 février existe
+  });
 });

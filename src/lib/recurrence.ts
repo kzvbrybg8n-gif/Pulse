@@ -83,13 +83,22 @@ export function nextOccurrence(spec: RecurrenceSpec, from: Date): Date {
     return new Date(from.getTime() + daysAhead * 86_400_000);
   }
 
-  // MONTHLY
-  const next = new Date(from);
-  next.setDate(spec.byMonthDay);
+  // MONTHLY — on vise le jour du mois demandé, clampé au dernier jour réel
+  // du mois (ex. BYMONTHDAY=31 → 28/29 février, 30 avril) pour ne sauter
+  // aucun mois ni déborder sur le mois suivant.
+  const lastDayOfMonth = (year: number, month: number) =>
+    new Date(year, month + 1, 0).getDate();
+
+  const atMonthDay = (year: number, month: number): Date => {
+    const day = Math.min(spec.byMonthDay, lastDayOfMonth(year, month));
+    const d = new Date(from);
+    d.setFullYear(year, month, day);
+    return d;
+  };
+
+  let next = atMonthDay(from.getFullYear(), from.getMonth());
   if (next <= from) {
-    // Passer au mois suivant
-    next.setMonth(next.getMonth() + 1);
-    next.setDate(spec.byMonthDay);
+    next = atMonthDay(from.getFullYear(), from.getMonth() + 1);
   }
   return next;
 }

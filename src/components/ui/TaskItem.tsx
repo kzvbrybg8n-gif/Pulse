@@ -1,6 +1,6 @@
 "use client";
 
-import { IconClock, IconPencil } from "@/components/icons";
+import { IconPencil } from "@/components/icons";
 import { Checkbox } from "@/components/ui/Checkbox";
 import { PriorityFlag } from "@/components/ui/PriorityFlag";
 import { TaskMeta } from "@/components/ui/TaskMeta";
@@ -32,9 +32,6 @@ export function TaskItem({ task, onToggle, onToggleSub, onEdit, hoverDemo }: Pro
               onClick={() => onEdit?.(task.id)}
             >
               <IconPencil size={16} />
-            </button>
-            <button type="button" className="pk-icon-btn sm" aria-label="Reporter">
-              <IconClock size={16} />
             </button>
           </div>
           {task.prio < 4 && (

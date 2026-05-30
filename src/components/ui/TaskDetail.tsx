@@ -179,6 +179,14 @@ export function TaskDetail({ taskId, userId, onClose, onUpdate, onDelete }: Prop
     onUpdate(detail.id, { prio });
   }
 
+  async function toggleStatus() {
+    if (!detail) return;
+    const newStatus = detail.status === "done" ? "open" : "done";
+    await supabase.from("tasks").update({ status: newStatus }).eq("id", detail.id);
+    setDetail((d) => d && { ...d, status: newStatus });
+    onUpdate(detail.id, { done: newStatus === "done" });
+  }
+
   async function saveDueAt() {
     if (!detail) return;
     const iso = editDue ? new Date(editDue).toISOString() : null;
@@ -363,7 +371,7 @@ export function TaskDetail({ taskId, userId, onClose, onUpdate, onDelete }: Prop
             <Checkbox
               done={detail.status === "done"}
               size={22}
-              onToggle={() => void savePrio(detail.prio)}
+              onToggle={() => void toggleStatus()}
             />
           </div>
           <textarea
