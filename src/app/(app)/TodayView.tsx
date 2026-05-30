@@ -8,6 +8,8 @@ import { QuickAdd } from "@/components/ui/QuickAdd";
 import { TaskDetail } from "@/components/ui/TaskDetail";
 import { TaskItem } from "@/components/ui/TaskItem";
 import { createClient } from "@/lib/supabase/client";
+import { formatDueLabel } from "@/lib/tasks/fromDb";
+import { nextOccurrence, parseRRule } from "@/lib/recurrence";
 import type { Task } from "@/lib/types";
 
 /* ============================================================
@@ -133,6 +135,61 @@ export function TodayView({ initialOverdue, initialToday, dateLabel, userId }: P
       if (error) {
         setList((ts) => ts.map((t) => (t.id === id ? { ...t, done: task.done } : t)));
         console.error("Échec de la mise à jour de la tâche", error);
+        return;
+      }
+
+      // Récurrence : si la tâche est marquée done ET a une règle, créer la prochaine occurrence
+      if (newDone && task.recur) {
+        try {
+          const spec = parseRRule(task.recur);
+          const now = new Date();
+          const fromDate = task.due
+            ? (() => {
+                // Chercher le due_at réel dans la DB — approximation : recalcul depuis now
+                return now;
+              })()
+            : now;
+          const nextDue = nextOccurrence(spec, fromDate);
+
+          const { data: newTask } = await supabase
+            .from("tasks")
+            .insert({
+              user_id: userId,
+              title: task.title,
+              status: "open",
+              prio: task.prio,
+              due_at: nextDue.toISOString(),
+              recur_rule: task.recur,
+              order_index: 0,
+            })
+            .select("id")
+            .single();
+
+          if (newTask) {
+            // Si la prochaine occurrence tombe aujourd'hui, l'ajouter à la liste
+            const todayStart = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+            const tomorrowStart = new Date(todayStart.getTime() + 86_400_000);
+            if (nextDue >= todayStart && nextDue < tomorrowStart) {
+              const nextTask: Task = {
+                id: (newTask as { id: string }).id,
+                title: task.title,
+                done: false,
+                prio: task.prio,
+                due: formatDueLabel(nextDue.toISOString(), now),
+                late: false,
+                tags: task.tags,
+                recur: task.recur,
+                reminder: false,
+                note: false,
+                subtasks: [],
+                expanded: false,
+              };
+              setToday((ts) => [...ts, nextTask]);
+            }
+          }
+        } catch {
+          // Règle non reconnue — on ignore silencieusement
+        }
       }
     };
   }

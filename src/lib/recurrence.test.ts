@@ -1,0 +1,106 @@
+import { describe, expect, it } from "vitest";
+import { nextOccurrence, parseRRule } from "./recurrence";
+
+// Référence : lundi 1er juin 2026 à 09:00
+const BASE = new Date(2026, 5, 1, 9, 0, 0); // mois 0-indexé → 5 = juin
+
+describe("parseRRule", () => {
+  it("FREQ=DAILY", () => {
+    expect(parseRRule("FREQ=DAILY")).toEqual({ freq: "DAILY", interval: 1 });
+  });
+
+  it("FREQ=DAILY;INTERVAL=3", () => {
+    expect(parseRRule("FREQ=DAILY;INTERVAL=3")).toEqual({ freq: "DAILY", interval: 3 });
+  });
+
+  it("FREQ=WEEKLY;BYDAY=MO", () => {
+    expect(parseRRule("FREQ=WEEKLY;BYDAY=MO")).toEqual({ freq: "WEEKLY", byDay: 1 });
+  });
+
+  it("FREQ=WEEKLY;BYDAY=FR", () => {
+    expect(parseRRule("FREQ=WEEKLY;BYDAY=FR")).toEqual({ freq: "WEEKLY", byDay: 5 });
+  });
+
+  it("FREQ=MONTHLY;BYMONTHDAY=1", () => {
+    expect(parseRRule("FREQ=MONTHLY;BYMONTHDAY=1")).toEqual({
+      freq: "MONTHLY",
+      byMonthDay: 1,
+    });
+  });
+
+  it("insensible à la casse", () => {
+    expect(parseRRule("freq=daily;interval=2")).toEqual({ freq: "DAILY", interval: 2 });
+  });
+
+  it("lève une erreur sur FREQ inconnu", () => {
+    expect(() => parseRRule("FREQ=HOURLY")).toThrow();
+  });
+
+  it("lève une erreur si BYDAY manquant pour WEEKLY", () => {
+    expect(() => parseRRule("FREQ=WEEKLY")).toThrow();
+  });
+});
+
+describe("nextOccurrence — DAILY", () => {
+  it("tous les jours : +1 jour", () => {
+    const spec = parseRRule("FREQ=DAILY");
+    const next = nextOccurrence(spec, BASE);
+    expect(next).toEqual(new Date(2026, 5, 2, 9, 0, 0));
+  });
+
+  it("tous les 3 jours : +3 jours", () => {
+    const spec = parseRRule("FREQ=DAILY;INTERVAL=3");
+    const next = nextOccurrence(spec, BASE);
+    expect(next).toEqual(new Date(2026, 5, 4, 9, 0, 0));
+  });
+
+  it("préserve l'heure", () => {
+    const from = new Date(2026, 5, 1, 14, 30, 0);
+    const spec = parseRRule("FREQ=DAILY");
+    const next = nextOccurrence(spec, from);
+    expect(next.getHours()).toBe(14);
+    expect(next.getMinutes()).toBe(30);
+  });
+});
+
+describe("nextOccurrence — WEEKLY", () => {
+  it("tous les lundis depuis un lundi → lundi suivant (+7j)", () => {
+    // BASE est un lundi (1er juin 2026)
+    const spec = parseRRule("FREQ=WEEKLY;BYDAY=MO");
+    const next = nextOccurrence(spec, BASE);
+    expect(next).toEqual(new Date(2026, 5, 8, 9, 0, 0)); // lundi 8 juin
+  });
+
+  it("tous les vendredis depuis un lundi → vendredi de la même semaine (+4j)", () => {
+    const spec = parseRRule("FREQ=WEEKLY;BYDAY=FR");
+    const next = nextOccurrence(spec, BASE);
+    expect(next).toEqual(new Date(2026, 5, 5, 9, 0, 0)); // vendredi 5 juin
+  });
+
+  it("tous les dimanches depuis un lundi → dimanche suivant (+6j)", () => {
+    const spec = parseRRule("FREQ=WEEKLY;BYDAY=SU");
+    const next = nextOccurrence(spec, BASE);
+    expect(next).toEqual(new Date(2026, 5, 7, 9, 0, 0)); // dimanche 7 juin
+  });
+});
+
+describe("nextOccurrence — MONTHLY", () => {
+  it("le 1er du mois depuis le 1er → 1er du mois suivant", () => {
+    const spec = parseRRule("FREQ=MONTHLY;BYMONTHDAY=1");
+    const next = nextOccurrence(spec, BASE);
+    expect(next).toEqual(new Date(2026, 6, 1, 9, 0, 0)); // 1er juillet
+  });
+
+  it("le 15 depuis le 1er → le 15 du même mois", () => {
+    const spec = parseRRule("FREQ=MONTHLY;BYMONTHDAY=15");
+    const next = nextOccurrence(spec, BASE);
+    expect(next).toEqual(new Date(2026, 5, 15, 9, 0, 0)); // 15 juin
+  });
+
+  it("le 15 depuis le 20 → le 15 du mois suivant", () => {
+    const from = new Date(2026, 5, 20, 9, 0, 0);
+    const spec = parseRRule("FREQ=MONTHLY;BYMONTHDAY=15");
+    const next = nextOccurrence(spec, from);
+    expect(next).toEqual(new Date(2026, 6, 15, 9, 0, 0)); // 15 juillet
+  });
+});
