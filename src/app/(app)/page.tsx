@@ -39,6 +39,10 @@ export default async function TodayPage() {
   const rows = (data ?? []) as unknown as TaskRow[];
   const { overdue, today } = groupToday(rows, now);
 
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
   const dateLabel = new Intl.DateTimeFormat("fr-FR", {
     weekday: "long",
     day: "numeric",
@@ -46,5 +50,12 @@ export default async function TodayPage() {
     year: "numeric",
   }).format(now);
 
-  return <TodayView initialOverdue={overdue} initialToday={today} dateLabel={dateLabel} />;
+  return (
+    <TodayView
+      initialOverdue={overdue}
+      initialToday={today}
+      dateLabel={dateLabel}
+      userId={user?.id ?? ""}
+    />
+  );
 }

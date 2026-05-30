@@ -52,13 +52,29 @@ function Section({
   );
 }
 
-function MobileQuickAddSheet({ open, onClose }: { open: boolean; onClose: () => void }) {
+function MobileQuickAddSheet({
+  open,
+  onClose,
+  userId,
+  onAdd,
+}: {
+  open: boolean;
+  onClose: () => void;
+  userId: string;
+  onAdd?: (task: Task) => void;
+}) {
   if (!open) return null;
   return (
     <div className="pm-sheet-back" onClick={onClose} role="presentation">
       <div className="pm-sheet" onClick={(e) => e.stopPropagation()} role="dialog" aria-modal>
         <div className="pm-sheet-grip" />
-        <QuickAdd defaultValue="" />
+        <QuickAdd
+          userId={userId}
+          onAdd={(task) => {
+            onAdd?.(task);
+            onClose();
+          }}
+        />
       </div>
     </div>
   );
@@ -68,13 +84,22 @@ type Props = {
   initialOverdue: Task[];
   initialToday: Task[];
   dateLabel: string;
+  userId: string;
 };
 
-export function TodayView({ initialOverdue, initialToday, dateLabel }: Props) {
+export function TodayView({ initialOverdue, initialToday, dateLabel, userId }: Props) {
   const [supabase] = useState(() => createClient());
   const [overdue, setOverdue] = useState<Task[]>(initialOverdue);
   const [today, setToday] = useState<Task[]>(initialToday);
   const [sheetOpen, setSheetOpen] = useState(false);
+
+  function handleTaskAdded(task: Task) {
+    if (task.late) {
+      setOverdue((ts) => [task, ...ts]);
+    } else {
+      setToday((ts) => [...ts, task]);
+    }
+  }
 
   function makeToggleTask(
     list: Task[],
@@ -145,7 +170,7 @@ export function TodayView({ initialOverdue, initialToday, dateLabel }: Props) {
           <Header dateLabel={dateLabel} count={remaining} />
 
           <div className="pk-qa-wrap">
-            <QuickAdd defaultValue="" />
+            <QuickAdd userId={userId} onAdd={handleTaskAdded} />
           </div>
 
           {isEmpty ? (
@@ -196,7 +221,12 @@ export function TodayView({ initialOverdue, initialToday, dateLabel }: Props) {
 
       <MobileTabs />
 
-      <MobileQuickAddSheet open={sheetOpen} onClose={() => setSheetOpen(false)} />
+      <MobileQuickAddSheet
+        open={sheetOpen}
+        onClose={() => setSheetOpen(false)}
+        userId={userId}
+        onAdd={handleTaskAdded}
+      />
     </div>
   );
 }
