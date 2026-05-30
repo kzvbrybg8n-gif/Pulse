@@ -10,10 +10,11 @@ type Props = {
   task: Task;
   onToggle?: (id: string) => void;
   onToggleSub?: (taskId: string, subId: string) => void;
+  onEdit?: (id: string) => void;
   hoverDemo?: boolean;
 };
 
-export function TaskItem({ task, onToggle, onToggleSub, hoverDemo }: Props) {
+export function TaskItem({ task, onToggle, onToggleSub, onEdit, hoverDemo }: Props) {
   return (
     <div className="pk-task-block">
       <div className={"pk-task" + (hoverDemo ? " hover-demo" : "")} tabIndex={0}>
@@ -24,7 +25,12 @@ export function TaskItem({ task, onToggle, onToggleSub, hoverDemo }: Props) {
         </div>
         <div className="pk-task-right">
           <div className="pk-task-actions">
-            <button type="button" className="pk-icon-btn sm" aria-label="Modifier">
+            <button
+              type="button"
+              className="pk-icon-btn sm"
+              aria-label="Modifier"
+              onClick={() => onEdit?.(task.id)}
+            >
               <IconPencil size={16} />
             </button>
             <button type="button" className="pk-icon-btn sm" aria-label="Reporter">

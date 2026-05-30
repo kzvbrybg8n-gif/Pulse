@@ -98,6 +98,7 @@ export function taskFromRow(row: TaskRow, now: Date): Task {
     recur: row.recur_rule,
     reminder: false, // table reminders câblée en Phase 8
     note: Boolean(row.note && row.note.trim().length > 0),
+    noteContent: row.note ?? null,
     subtasks,
     expanded: subtasks.length > 0,
   };

@@ -20,6 +20,7 @@ export type Task = {
   recur: string | null;
   reminder: boolean;
   note: boolean;
+  noteContent?: string | null;
   subtasks: Subtask[];
   expanded?: boolean;
 };

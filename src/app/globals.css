@@ -12,6 +12,7 @@
 @import "../styles/tokens.css";
 @import "../styles/kit.css";
 @import "../styles/today.css";
+@import "../styles/detail.css";
 
 @theme inline {
   /* Couleurs — papier / encre / accents */

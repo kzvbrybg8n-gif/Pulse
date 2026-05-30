@@ -5,6 +5,7 @@ import { IconPlus } from "@/components/icons";
 import { MobileTabs } from "@/components/layout/MobileTabs";
 import { Sidebar } from "@/components/layout/Sidebar";
 import { QuickAdd } from "@/components/ui/QuickAdd";
+import { TaskDetail } from "@/components/ui/TaskDetail";
 import { TaskItem } from "@/components/ui/TaskItem";
 import { createClient } from "@/lib/supabase/client";
 import type { Task } from "@/lib/types";
@@ -92,6 +93,7 @@ export function TodayView({ initialOverdue, initialToday, dateLabel, userId }: P
   const [overdue, setOverdue] = useState<Task[]>(initialOverdue);
   const [today, setToday] = useState<Task[]>(initialToday);
   const [sheetOpen, setSheetOpen] = useState(false);
+  const [selectedTaskId, setSelectedTaskId] = useState<string | null>(null);
 
   function handleTaskAdded(task: Task) {
     if (task.late) {
@@ -99,6 +101,17 @@ export function TodayView({ initialOverdue, initialToday, dateLabel, userId }: P
     } else {
       setToday((ts) => [...ts, task]);
     }
+  }
+
+  function handleTaskUpdate(id: string, changes: Partial<Task>) {
+    const apply = (ts: Task[]) => ts.map((t) => (t.id === id ? { ...t, ...changes } : t));
+    setOverdue(apply);
+    setToday(apply);
+  }
+
+  function handleTaskDelete(id: string) {
+    setOverdue((ts) => ts.filter((t) => t.id !== id));
+    setToday((ts) => ts.filter((t) => t.id !== id));
   }
 
   function makeToggleTask(
@@ -188,6 +201,7 @@ export function TodayView({ initialOverdue, initialToday, dateLabel, userId }: P
                       task={t}
                       onToggle={makeToggleTask(overdue, setOverdue)}
                       onToggleSub={toggleSub}
+                      onEdit={setSelectedTaskId}
                     />
                   ))}
                 </Section>
@@ -201,6 +215,7 @@ export function TodayView({ initialOverdue, initialToday, dateLabel, userId }: P
                       task={t}
                       onToggle={makeToggleTask(today, setToday)}
                       onToggleSub={toggleSub}
+                      onEdit={setSelectedTaskId}
                     />
                   ))}
                 </Section>
@@ -227,6 +242,16 @@ export function TodayView({ initialOverdue, initialToday, dateLabel, userId }: P
         userId={userId}
         onAdd={handleTaskAdded}
       />
+
+      {selectedTaskId && (
+        <TaskDetail
+          taskId={selectedTaskId}
+          userId={userId}
+          onClose={() => setSelectedTaskId(null)}
+          onUpdate={handleTaskUpdate}
+          onDelete={handleTaskDelete}
+        />
+      )}
     </div>
   );
 }
