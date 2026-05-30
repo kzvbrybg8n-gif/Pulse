@@ -50,3 +50,17 @@ export type FootNavItem = {
   label: string;
   Icon: ComponentType<IconProps>;
 };
+
+export type HabitPeriod = "day" | "week" | "month";
+
+export type Habit = {
+  id: string;
+  name: string;
+  targetPerPeriod: number;
+  period: HabitPeriod;
+  streak: number;
+  checkedToday: boolean;
+  weekDots: boolean[]; // index 0 = 6 days ago, index 6 = today
+  totalDone: number;
+  createdAt: string;
+};

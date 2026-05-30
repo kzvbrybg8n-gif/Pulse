@@ -14,6 +14,7 @@
 @import "../styles/today.css";
 @import "../styles/detail.css";
 @import "../styles/filter.css";
+@import "../styles/habits.css";
 
 @theme inline {
   /* Couleurs — papier / encre / accents */

@@ -240,12 +240,21 @@ export function Sidebar() {
       )}
 
       <div className="pk-side-foot">
-        {FOOT_NAV.map((v) => (
-          <button key={v.id} type="button" className="pk-footitem">
-            <v.Icon size={18} />
-            <span className="t">{v.label}</span>
-          </button>
-        ))}
+        {FOOT_NAV.map((v) => {
+          const href = v.id === "habits" ? "/habits" : v.id === "focus" ? "/focus" : null;
+          const isActive = href ? pathname.startsWith(href) : false;
+          return (
+            <button
+              key={v.id}
+              type="button"
+              className={"pk-footitem" + (isActive ? " active" : "")}
+              onClick={href ? () => router.push(href) : undefined}
+            >
+              <v.Icon size={18} />
+              <span className="t">{v.label}</span>
+            </button>
+          );
+        })}
         <button type="button" className="pk-footitem" onClick={signOut}>
           <IconX size={18} />
           <span className="t">Déconnexion</span>
