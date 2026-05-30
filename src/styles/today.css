@@ -1,0 +1,202 @@
+/* ============================================================
+   PULSE — Vue « Aujourd'hui » · styles spécifiques
+   (s'appuie sur colors_and_type.css + kit.css)
+   ============================================================ */
+
+/* ---- Fusion desktop/mobile — Phase 1 ----------------------
+   L'export Claude Design séparait deux composants `desktop.jsx`
+   et `mobile.jsx` avec deux jeux de classes (.pk-* et .pm-*).
+   On garde un seul arbre React (.pk-app) et on bascule la
+   présentation au breakpoint 768px : la sidebar devient une
+   tab bar en bas, le QuickAdd inline laisse place à un FAB
+   qui ouvre une bottom sheet.
+   ----------------------------------------------------------- */
+html, body { height: 100%; }
+
+@media (max-width: 767.98px) {
+  .pk-app { flex-direction: column; height: 100dvh; position: relative; }
+  .pk-side { display: none; }
+  .pk-content { flex: 1; min-height: 0; }
+  .pk-content-inner { padding: 28px 16px 96px; max-width: none; }
+  .pk-qa-wrap { display: none; }
+  .pk-view-head { margin-bottom: 12px; }
+  .pk-view-title { font-size: 34px; }
+  .pk-eyebrow { font-size: 15px; }
+  .pk-view-count { font-size: 12px; padding-top: 4px; }
+  .pk-section { margin-top: 18px; }
+  /* sur mobile : pas d'actions au survol */
+  .pk-task-actions { display: none; }
+}
+
+@media (min-width: 768px) {
+  .pm-fab, .pm-tabs, .pm-sheet-back { display: none; }
+}
+
+/* ---- Layout de base (desktop) ----------------------------- */
+.pk-app { display: flex; overflow: hidden; background: var(--bg); height: 100%; }
+.pk-side { width: 264px; flex: none; background: var(--bg-raised); border-right: 1px solid var(--border);
+  display: flex; flex-direction: column; padding: 20px 14px; overflow-y: auto; }
+.pk-brand { display: flex; align-items: center; gap: 8px; padding: 4px 10px 16px; }
+.pk-brand img { height: 28px; width: auto; }
+.pk-nav { display: flex; flex-direction: column; gap: 2px; }
+.pk-navitem { display: flex; align-items: center; gap: 12px; padding: 9px 12px; border-radius: var(--radius-sm);
+  border: none; background: transparent; color: var(--fg-muted); text-align: left; width: 100%;
+  font-family: var(--font-sans);
+  transition: background var(--dur-fast) var(--ease-out), color var(--dur-fast) var(--ease-out); }
+.pk-navitem svg { flex: none; }
+.pk-navitem .t { flex: 1; font-size: 14px; font-weight: 500; }
+.pk-navitem .c { font-family: var(--font-mono); font-size: 11px; color: var(--fg-subtle); }
+.pk-navitem:hover { background: var(--bg-hover); color: var(--fg); }
+.pk-navitem.active { background: var(--accent-bg); color: var(--accent-text); }
+.pk-navitem.active .t { font-weight: 600; }
+.pk-navitem.active .c { color: var(--accent-text); }
+.pk-side-lab { font-size: 10px; font-weight: 600; letter-spacing: .12em; text-transform: uppercase;
+  color: var(--fg-subtle); padding: 0 12px; margin: 22px 0 6px; }
+.pk-folder { margin-bottom: 2px; }
+.pk-folder-lists { display: flex; flex-direction: column; }
+.pk-listitem { display: flex; align-items: center; gap: 9px; padding: 6px 12px 6px 32px; border: none;
+  background: transparent; color: var(--fg-muted); width: 100%; text-align: left; border-radius: var(--radius-sm);
+  font-family: var(--font-sans); }
+.pk-listitem .t { flex: 1; font-size: 13px; }
+.pk-listitem .c { font-family: var(--font-mono); font-size: 11px; color: var(--fg-subtle); }
+.pk-listitem:hover { background: var(--bg-hover); color: var(--fg); }
+
+/* ---- Adaptation au cadre fixe du canvas -------------------- */
+.pk-content { flex: 1; overflow-y: auto; min-width: 0; }
+.pk-content-inner { max-width: 720px; margin: 0 auto; padding: 44px 40px 64px; }
+
+/* ---- Sidebar : recherche ---------------------------------- */
+.pk-side-search {
+  display: flex; align-items: center; gap: 10px;
+  background: var(--bg-sunken); border: 1px solid var(--border);
+  border-radius: var(--radius-pill); padding: 9px 14px; margin: 2px 4px 6px;
+  color: var(--fg-subtle);
+}
+.pk-side-search input {
+  flex: 1; border: none; background: transparent; min-width: 0;
+  font-family: var(--font-sans); font-size: 13.5px; color: var(--fg);
+}
+.pk-side-search input::placeholder { color: var(--fg-faint); }
+.pk-side-search input:focus { outline: none; }
+
+/* ---- Marqueur vert de l'élément actif --------------------- */
+.pk-navitem { position: relative; }
+.pk-navitem.active::before {
+  content: ""; position: absolute; left: -4px; top: 8px; bottom: 8px;
+  width: 3px; border-radius: var(--radius-pill); background: var(--accent);
+}
+
+/* ---- Dossiers repliables ---------------------------------- */
+.pk-folder-head {
+  display: flex; align-items: center; gap: 8px; padding: 7px 12px 7px 8px;
+  border: none; background: transparent; width: 100%; text-align: left;
+  color: var(--fg-muted); font-size: 13px; font-weight: 600; font-family: var(--font-sans);
+  border-radius: var(--radius-sm);
+}
+.pk-folder-head:hover { background: var(--bg-hover); color: var(--fg); }
+.pk-folder-head .t { flex: 1; }
+.pk-folder-chev { display: inline-flex; color: var(--fg-subtle);
+  transition: transform var(--dur-base) var(--ease-out); }
+.pk-folder-chev.open { transform: rotate(90deg); }
+
+/* ---- Bas de barre latérale -------------------------------- */
+.pk-side-foot {
+  margin-top: auto; padding-top: 14px; border-top: 1px solid var(--border);
+  display: flex; flex-direction: column; gap: 2px;
+}
+.pk-footitem {
+  display: flex; align-items: center; gap: 12px; padding: 9px 12px;
+  border: none; background: transparent; width: 100%; text-align: left;
+  color: var(--fg-muted); border-radius: var(--radius-sm);
+  transition: background var(--dur-fast) var(--ease-out), color var(--dur-fast) var(--ease-out);
+}
+.pk-footitem .t { font-size: 14px; font-weight: 500; }
+.pk-footitem:hover { background: var(--bg-hover); color: var(--fg); }
+
+/* ---- En-tête de vue --------------------------------------- */
+.pk-view-head { align-items: flex-start; margin-bottom: 18px; }
+.pk-eyebrow {
+  font-family: var(--font-serif); font-style: italic; font-weight: 300;
+  font-size: 18px; color: var(--fg-muted); margin-bottom: 4px;
+}
+.pk-view-title { margin: 0; }
+.pk-view-count { text-align: right; line-height: 1.35; padding-top: 8px; }
+
+/* ---- Sections --------------------------------------------- */
+.pk-section { margin-top: 26px; }
+.pk-section-lab { margin: 0 0 10px; }
+.pk-section-lab.accent { color: var(--signal); }
+
+/* ---- Ligne de tâche : bloc + côté droit ------------------- */
+.pk-task-block { }
+.pk-task-block + .pk-task-block { border-top: 1px solid var(--border); }
+.pk-task { min-height: 60px; align-items: flex-start; padding-top: 16px; padding-bottom: 16px; }
+.pk-task .pk-check { margin-top: 1px; }
+.pk-task-mid { display: flex; flex-direction: column; gap: 5px; }
+.pk-task-right { display: flex; align-items: center; gap: 6px; flex: none; align-self: center; }
+.pk-task-flag { display: inline-flex; }
+
+/* méta : icônes regroupées */
+.pk-task-meta { gap: 12px; }
+.pk-meta-ico { display: inline-flex; align-items: center; gap: 4px; }
+.pk-subcount { font-family: var(--font-mono); font-size: 11px; color: var(--fg-subtle); }
+
+/* actions discrètes au survol */
+.pk-task-actions {
+  display: flex; align-items: center; gap: 2px;
+  opacity: 0; transform: translateX(4px);
+  transition: opacity var(--dur-base) var(--ease-out), transform var(--dur-base) var(--ease-out);
+  pointer-events: none;
+}
+.pk-task:hover .pk-task-actions,
+.pk-task:focus-within .pk-task-actions,
+.pk-task.hover-demo .pk-task-actions { opacity: 1; transform: none; pointer-events: auto; }
+.pk-task.hover-demo { background: var(--bg-hover); }
+.pk-icon-btn.sm { width: 30px; height: 30px; }
+
+/* ---- Sous-tâches dépliées --------------------------------- */
+.pk-subrows {
+  padding: 2px 16px 14px 52px; display: flex; flex-direction: column;
+}
+.pk-subrow { display: flex; align-items: center; gap: 12px; padding: 7px 0; }
+.pk-subrow-title { font-size: 14px; color: var(--fg-muted); line-height: 1.4; }
+.pk-subrow-title.done { color: var(--fg-faint); text-decoration: line-through; }
+
+/* ---- Jetons détectés (quick add) -------------------------- */
+.pk-qa-tok.date { background: var(--bg-sunken); color: var(--fg-muted); }
+.pk-qa-tok.tag  { background: var(--accent-bg); color: var(--accent-text); }
+
+/* ============================================================
+   MOBILE — layout (cadre iOS)
+   ============================================================ */
+.pm-app { height: 100%; display: flex; flex-direction: column; background: var(--bg); position: relative; }
+.pm-header { padding: 60px 20px 8px; display: flex; align-items: flex-end; justify-content: space-between; }
+.pm-eyebrow { font-family: var(--font-serif); font-style: italic; font-weight: 300; font-size: 15px; color: var(--fg-muted); margin-bottom: 2px; }
+.pm-header-title { font-family: var(--font-serif); font-size: 34px; font-weight: 300; letter-spacing: -0.025em; line-height: 1.05; color: var(--fg); }
+.pm-header-count { font-family: var(--font-mono); font-size: 12px; color: var(--fg-subtle); white-space: nowrap; padding-bottom: 6px; }
+.pm-scroll { flex: 1; overflow-y: auto; padding: 4px 16px 16px; }
+.pm-section { margin-top: 14px; }
+.pm-section-lab { font-size: 11px; font-weight: 600; letter-spacing: .12em; text-transform: uppercase; color: var(--fg-subtle); margin: 8px 4px 8px; }
+.pm-section-lab.accent { color: var(--signal); }
+.pm-listcard { background: var(--bg-raised); border: 1px solid var(--border); border-radius: var(--radius-md); overflow: hidden; }
+
+/* sur mobile : pas d'actions au survol, drapeau seul */
+.pm-app .pk-task-actions { display: none; }
+.pm-app .pk-task { min-height: 56px; }
+
+/* Tab bar */
+.pm-tabs { flex: none; display: flex; border-top: 1px solid var(--border); background: var(--bg-raised); padding: 8px 6px 26px; }
+.pm-tab { flex: 1; display: flex; flex-direction: column; align-items: center; gap: 4px; border: none; background: transparent; color: var(--fg-subtle); padding: 6px 0; min-height: 48px; }
+.pm-tab.active { color: var(--accent); }
+.pm-tab .lab { font-size: 11px; font-weight: 600; }
+
+/* FAB */
+.pm-fab { position: absolute; right: 18px; bottom: 92px; width: 56px; height: 56px; border-radius: var(--radius-pill); background: var(--accent); color: var(--on-accent); border: none; display: flex; align-items: center; justify-content: center; box-shadow: var(--shadow-lg); z-index: 30; }
+.pm-fab:active { transform: translateY(1px); }
+
+/* Feuille de saisie rapide */
+.pm-sheet-back { position: absolute; inset: 0; background: rgba(33,31,27,0.32); z-index: 40; display: flex; align-items: flex-end; animation: pm-fade var(--dur-base) var(--ease-out); }
+@keyframes pm-fade { from { opacity: 0; } to { opacity: 1; } }
+.pm-sheet { width: 100%; background: var(--bg-overlay); border-radius: var(--radius-lg) var(--radius-lg) 0 0; padding: 16px 16px 30px; animation: pm-slide var(--dur-slow) var(--ease-out); box-shadow: var(--shadow-lg); }
+@keyframes pm-slide { from { transform: translateY(40px); } to { transform: translateY(0); } }
+.pm-sheet-grip { width: 38px; height: 4px; border-radius: 999px; background: var(--border-strong); margin: 0 auto 16px; }
