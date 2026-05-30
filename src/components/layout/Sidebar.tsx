@@ -9,11 +9,14 @@ import {
   IconFolder,
   IconHash,
   IconInbox,
+  IconPlus,
   IconSearch,
   IconSun,
   IconX,
 } from "@/components/icons";
+import { FilterPanel } from "@/components/ui/FilterPanel";
 import { createClient } from "@/lib/supabase/client";
+import { loadFilters, type FilterSpec } from "@/lib/filters";
 import { FOOT_NAV } from "@/lib/mocks/today";
 
 /* ── Types ──────────────────────────────────────────────── */
@@ -36,6 +39,9 @@ export function Sidebar() {
   const [supabase] = useState(() => createClient());
   const [data, setData] = useState<SidebarData | null>(null);
   const [folderOpen, setFolderOpen] = useState<Record<string, boolean>>({});
+  const [filters, setFilters] = useState<FilterSpec[]>([]);
+  const [filterPanelOpen, setFilterPanelOpen] = useState(false);
+  const [filterPanelSpec, setFilterPanelSpec] = useState<FilterSpec | null>(null);
 
   useEffect(() => {
     async function load() {
@@ -49,7 +55,7 @@ export function Sidebar() {
       const now = new Date();
       const todayStart = new Date(now.getFullYear(), now.getMonth(), now.getDate());
       const tomorrowStart = new Date(todayStart.getTime() + 86_400_000);
-      const sevenDaysEnd = new Date(todayStart.getTime() + 7 * 86_400_000);
+      const sevenDaysEnd = new Date(tomorrowStart.getTime() + 7 * 86_400_000);
 
       const todayCount = tasks.filter((t) => {
         if (!t.due_at) return true;
@@ -101,6 +107,9 @@ export function Sidebar() {
 
       setData({ todayCount, upcomingCount, allCount, folders });
       setFolderOpen(Object.fromEntries(folders.map((f) => [f.id, true])));
+
+      // 3. Filtres personnalisés (localStorage)
+      setFilters(loadFilters());
     }
 
     void load();
@@ -114,7 +123,13 @@ export function Sidebar() {
 
   const smartLists = [
     { id: "today", label: "Aujourd'hui", Icon: IconSun, href: "/", count: data?.todayCount ?? 0 },
-    { id: "upcoming", label: "7 prochains jours", Icon: IconCalendarDays, href: "/upcoming", count: data?.upcomingCount ?? 0 },
+    {
+      id: "upcoming",
+      label: "7 prochains jours",
+      Icon: IconCalendarDays,
+      href: "/upcoming",
+      count: data?.upcomingCount ?? 0,
+    },
     { id: "all", label: "Toutes les tâches", Icon: IconInbox, href: "/all", count: data?.allCount ?? 0 },
   ];
 
@@ -148,9 +163,45 @@ export function Sidebar() {
         })}
       </nav>
 
+      {/* Filtres personnalisés */}
+      <div className="fp-side-head">
+        <div className="pk-side-lab" style={{ margin: 0, padding: 0 }}>
+          Filtres
+        </div>
+        <button
+          type="button"
+          className="fp-side-add-btn"
+          onClick={() => {
+            setFilterPanelSpec(null);
+            setFilterPanelOpen(true);
+          }}
+          aria-label="Nouveau filtre"
+        >
+          <IconPlus size={14} />
+        </button>
+      </div>
+      {filters.length > 0 && (
+        <nav className="pk-nav">
+          {filters.map((f) => {
+            const href = `/filter/${f.id}`;
+            return (
+              <button
+                key={f.id}
+                type="button"
+                className={"pk-navitem" + (pathname === href ? " active" : "")}
+                onClick={() => router.push(href)}
+              >
+                <IconHash size={18} />
+                <span className="t">{f.name}</span>
+              </button>
+            );
+          })}
+        </nav>
+      )}
+
       {(data?.folders.length ?? 0) > 0 && (
         <>
-          <div className="pk-side-lab">Listes & projets</div>
+          <div className="pk-side-lab">Listes &amp; projets</div>
           {(data?.folders ?? []).map((f) => (
             <div className="pk-folder" key={f.id}>
               <button
@@ -200,6 +251,22 @@ export function Sidebar() {
           <span className="t">Déconnexion</span>
         </button>
       </div>
+
+      {filterPanelOpen && (
+        <FilterPanel
+          initialSpec={filterPanelSpec}
+          onSave={(spec) => {
+            setFilters(loadFilters());
+            setFilterPanelOpen(false);
+            router.push(`/filter/${spec.id}`);
+          }}
+          onDelete={() => {
+            setFilters(loadFilters());
+            setFilterPanelOpen(false);
+          }}
+          onClose={() => setFilterPanelOpen(false)}
+        />
+      )}
     </aside>
   );
 }
