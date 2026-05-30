@@ -8,8 +8,8 @@ import type { Task } from "@/lib/types";
 
 type Props = {
   task: Task;
-  onToggle?: (id: number) => void;
-  onToggleSub?: (taskId: number, subId: number) => void;
+  onToggle?: (id: string) => void;
+  onToggleSub?: (taskId: string, subId: string) => void;
   hoverDemo?: boolean;
 };
 

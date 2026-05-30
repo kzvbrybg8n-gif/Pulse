@@ -1,6 +1,10 @@
-/* Pulse — données mock pour la vue « Aujourd'hui ».
-   Sera remplacé par des requêtes Supabase en Phase 3.
-   Contenu fictif (assistant juridique) issu de l'export Claude Design. */
+/* Pulse — configuration encore statique de la chrome « Aujourd'hui ».
+
+   Les tâches (OVERDUE/TODAY) viennent désormais de Supabase (Phase 3).
+   Ne restent ici que des données de navigation/présentation pas encore
+   branchées : PRIO (table de correspondance priorité → drapeau),
+   SMART_LISTS, FOLDERS, FOOT_NAV. Leur branchement DB est prévu en
+   Phase 4/5. */
 
 import {
   IconCalendarDays,
@@ -10,13 +14,7 @@ import {
   IconSun,
   IconTimer,
 } from "@/components/icons";
-import type {
-  Folder,
-  FootNavItem,
-  PrioConfig,
-  SmartList,
-  Task,
-} from "@/lib/types";
+import type { Folder, FootNavItem, PrioConfig, SmartList } from "@/lib/types";
 
 export const PRIO: PrioConfig = {
   1: { label: "Urgent", varName: "--prio-1", filled: true, sw: 1.75 },
@@ -55,79 +53,4 @@ export const FOOT_NAV: FootNavItem[] = [
   { id: "habits", label: "Habitudes", Icon: IconRepeat },
   { id: "focus", label: "Focus", Icon: IconTimer },
   { id: "settings", label: "Réglages", Icon: IconSettings },
-];
-
-export const OVERDUE: Task[] = [
-  {
-    id: 1,
-    title: "Finaliser la clause de non-concurrence — dossier Lemoine",
-    done: false,
-    prio: 1,
-    due: "hier · 18:00",
-    late: true,
-    tags: ["rédaction"],
-    recur: null,
-    reminder: false,
-    note: true,
-    subtasks: [],
-  },
-];
-
-export const TODAY: Task[] = [
-  {
-    id: 2,
-    title: "Envoyer la note de synthèse à Me Dubois",
-    done: true,
-    prio: 3,
-    due: "09:30",
-    late: false,
-    tags: ["client"],
-    recur: null,
-    reminder: false,
-    note: false,
-    subtasks: [],
-  },
-  {
-    id: 3,
-    title: "Préparer le rendez-vous client TechNova",
-    done: false,
-    prio: 2,
-    due: "15:00",
-    late: false,
-    tags: ["client", "M&A"],
-    recur: null,
-    reminder: false,
-    note: true,
-    expanded: true,
-    subtasks: [
-      { id: 31, title: "Relire le pacte d'associés", done: false },
-      { id: 32, title: "Lister les points de vigilance", done: true },
-    ],
-  },
-  {
-    id: 4,
-    title: "Veille jurisprudentielle",
-    done: false,
-    prio: 3,
-    due: null,
-    late: false,
-    tags: ["veille"],
-    recur: "chaque jour",
-    reminder: false,
-    note: false,
-    subtasks: [],
-  },
-  {
-    id: 5,
-    title: "Relire le contrat de prestation",
-    done: false,
-    prio: 2,
-    due: "14:00",
-    late: false,
-    tags: ["client"],
-    recur: null,
-    reminder: true,
-    note: false,
-    subtasks: [],
-  },
 ];

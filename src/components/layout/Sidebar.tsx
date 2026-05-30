@@ -2,18 +2,29 @@
 
 import Image from "next/image";
 import { useState } from "react";
+import { useRouter } from "next/navigation";
 import {
   IconChevronRight,
   IconFolder,
   IconHash,
   IconSearch,
+  IconX,
 } from "@/components/icons";
+import { createClient } from "@/lib/supabase/client";
 import { FOLDERS, FOOT_NAV, SMART_LISTS } from "@/lib/mocks/today";
 
 export function Sidebar() {
+  const router = useRouter();
+  const [supabase] = useState(() => createClient());
   const [open, setOpen] = useState<Record<string, boolean>>(() =>
     Object.fromEntries(FOLDERS.map((f) => [f.name, f.open])),
   );
+
+  async function signOut() {
+    await supabase.auth.signOut();
+    router.push("/login");
+    router.refresh();
+  }
 
   return (
     <aside className="pk-side">
@@ -76,6 +87,11 @@ export function Sidebar() {
             <span className="t">{v.label}</span>
           </button>
         ))}
+        {/* Placement temporaire : la page Réglages hébergera la déconnexion. */}
+        <button type="button" className="pk-footitem" onClick={signOut}>
+          <IconX size={18} />
+          <span className="t">Déconnexion</span>
+        </button>
       </div>
     </aside>
   );

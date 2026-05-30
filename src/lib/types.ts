@@ -4,13 +4,13 @@ import type { IconProps } from "@/components/icons";
 export type Priority = 1 | 2 | 3 | 4;
 
 export type Subtask = {
-  id: number;
+  id: string;
   title: string;
   done: boolean;
 };
 
 export type Task = {
-  id: number;
+  id: string;
   title: string;
   done: boolean;
   prio: Priority;

@@ -52,6 +52,38 @@ supabase migration new <nom_court>
 supabase db push
 ```
 
+### Regénérer les types TypeScript (après tout changement de schéma)
+```bash
+supabase gen types typescript --linked > src/lib/supabase/database.types.ts
+```
+
+## Authentification (Phase 3)
+
+L'app est **mono-utilisateur** : pas d'inscription publique. Le compte se
+provisionne une fois dans le dashboard.
+
+1. Dashboard → **Authentication → Users → Add user → Create new user**
+   - Email : ton vrai email
+   - Password : celui que tu taperas au login
+   - ✅ **Auto Confirm User**
+2. Renseigne `.env.local` (`NEXT_PUBLIC_SUPABASE_URL`,
+   `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY`).
+3. `npm run dev` → `/login` → connecte-toi.
+
+### Peupler des tâches de démo
+
+Tant que la création via QuickAdd n'est pas câblée (Phase 4), un script
+remplit la vue « Aujourd'hui ». **Il purge tes tâches puis réinsère** un
+jeu d'exemple — dev uniquement :
+
+```bash
+SEED_EMAIL=toi@exemple.com SEED_PASSWORD='ton-mot-de-passe' \
+  node scripts/seed-user-tasks.mjs
+```
+
+Les identifiants sont passés au runtime, jamais committés. L'URL et la clé
+publishable sont lues depuis `.env.local`.
+
 ### Voir l'état de la base
 ```bash
 supabase migration list      # quelles migrations sont appliquées en cloud

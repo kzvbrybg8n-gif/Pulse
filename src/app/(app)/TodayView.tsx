@@ -1,0 +1,202 @@
+"use client";
+
+import { useState, type ReactNode } from "react";
+import { IconPlus } from "@/components/icons";
+import { MobileTabs } from "@/components/layout/MobileTabs";
+import { Sidebar } from "@/components/layout/Sidebar";
+import { QuickAdd } from "@/components/ui/QuickAdd";
+import { TaskItem } from "@/components/ui/TaskItem";
+import { createClient } from "@/lib/supabase/client";
+import type { Task } from "@/lib/types";
+
+/* ============================================================
+   Vue « Aujourd'hui » — Composant Client (interactivité)
+   Reçoit les données initiales du Composant Serveur. Les bascules
+   (cocher tâche / sous-tâche) écrivent en base de façon optimiste :
+   on met à jour l'état local immédiatement, puis on persiste ;
+   en cas d'erreur, on revient à l'état précédent.
+
+   Header / Section / MobileQuickAddSheet sont internes à cette vue.
+   ============================================================ */
+
+function Header({ dateLabel, count }: { dateLabel: string; count: number }) {
+  return (
+    <div className="pk-view-head">
+      <div>
+        <div className="pk-eyebrow">{dateLabel}</div>
+        <h1 className="pk-view-title">Aujourd&apos;hui</h1>
+      </div>
+      <span className="pk-view-count">
+        {count} {count > 1 ? "tâches" : "tâche"}
+        <br />
+        restante{count > 1 ? "s" : ""}
+      </span>
+    </div>
+  );
+}
+
+function Section({
+  label,
+  accent,
+  children,
+}: {
+  label: string;
+  accent?: boolean;
+  children: ReactNode;
+}) {
+  return (
+    <div className="pk-section">
+      <div className={"pk-section-lab" + (accent ? " accent" : "")}>{label}</div>
+      <div className="pk-listcard">{children}</div>
+    </div>
+  );
+}
+
+function MobileQuickAddSheet({ open, onClose }: { open: boolean; onClose: () => void }) {
+  if (!open) return null;
+  return (
+    <div className="pm-sheet-back" onClick={onClose} role="presentation">
+      <div className="pm-sheet" onClick={(e) => e.stopPropagation()} role="dialog" aria-modal>
+        <div className="pm-sheet-grip" />
+        <QuickAdd defaultValue="" />
+      </div>
+    </div>
+  );
+}
+
+type Props = {
+  initialOverdue: Task[];
+  initialToday: Task[];
+  dateLabel: string;
+};
+
+export function TodayView({ initialOverdue, initialToday, dateLabel }: Props) {
+  const [supabase] = useState(() => createClient());
+  const [overdue, setOverdue] = useState<Task[]>(initialOverdue);
+  const [today, setToday] = useState<Task[]>(initialToday);
+  const [sheetOpen, setSheetOpen] = useState(false);
+
+  function makeToggleTask(
+    list: Task[],
+    setList: React.Dispatch<React.SetStateAction<Task[]>>,
+  ) {
+    return async (id: string) => {
+      const task = list.find((t) => t.id === id);
+      if (!task) return;
+      const newDone = !task.done;
+
+      setList((ts) => ts.map((t) => (t.id === id ? { ...t, done: newDone } : t)));
+
+      const { error } = await supabase
+        .from("tasks")
+        .update({ status: newDone ? "done" : "open" })
+        .eq("id", id);
+
+      if (error) {
+        setList((ts) => ts.map((t) => (t.id === id ? { ...t, done: task.done } : t)));
+        console.error("Échec de la mise à jour de la tâche", error);
+      }
+    };
+  }
+
+  async function toggleSub(taskId: string, subId: string) {
+    const task = [...overdue, ...today].find((t) => t.id === taskId);
+    const sub = task?.subtasks.find((s) => s.id === subId);
+    if (!sub) return;
+    const newDone = !sub.done;
+
+    const apply = (target: boolean) => (ts: Task[]) =>
+      ts.map((t) =>
+        t.id === taskId
+          ? {
+              ...t,
+              subtasks: t.subtasks.map((s) =>
+                s.id === subId ? { ...s, done: target } : s,
+              ),
+            }
+          : t,
+      );
+
+    setOverdue(apply(newDone));
+    setToday(apply(newDone));
+
+    const { error } = await supabase
+      .from("subtasks")
+      .update({ done: newDone })
+      .eq("id", subId);
+
+    if (error) {
+      setOverdue(apply(sub.done));
+      setToday(apply(sub.done));
+      console.error("Échec de la mise à jour de la sous-tâche", error);
+    }
+  }
+
+  const remaining =
+    overdue.filter((t) => !t.done).length + today.filter((t) => !t.done).length;
+  const isEmpty = overdue.length === 0 && today.length === 0;
+
+  return (
+    <div className="pk-app">
+      <Sidebar />
+
+      <main className="pk-content">
+        <div className="pk-content-inner">
+          <Header dateLabel={dateLabel} count={remaining} />
+
+          <div className="pk-qa-wrap">
+            <QuickAdd defaultValue="" />
+          </div>
+
+          {isEmpty ? (
+            <div className="pk-empty">
+              <div className="pk-empty-title">Rien pour aujourd&apos;hui</div>
+              <div className="pk-empty-sub">Profite du calme, ou ajoute une tâche.</div>
+            </div>
+          ) : (
+            <>
+              {overdue.length > 0 && (
+                <Section label="En retard" accent>
+                  {overdue.map((t) => (
+                    <TaskItem
+                      key={t.id}
+                      task={t}
+                      onToggle={makeToggleTask(overdue, setOverdue)}
+                      onToggleSub={toggleSub}
+                    />
+                  ))}
+                </Section>
+              )}
+
+              {today.length > 0 && (
+                <Section label="Aujourd'hui">
+                  {today.map((t) => (
+                    <TaskItem
+                      key={t.id}
+                      task={t}
+                      onToggle={makeToggleTask(today, setToday)}
+                      onToggleSub={toggleSub}
+                    />
+                  ))}
+                </Section>
+              )}
+            </>
+          )}
+        </div>
+      </main>
+
+      <button
+        type="button"
+        className="pm-fab"
+        onClick={() => setSheetOpen(true)}
+        aria-label="Ajouter une tâche"
+      >
+        <IconPlus size={26} />
+      </button>
+
+      <MobileTabs />
+
+      <MobileQuickAddSheet open={sheetOpen} onClose={() => setSheetOpen(false)} />
+    </div>
+  );
+}
