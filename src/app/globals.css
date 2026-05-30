@@ -15,6 +15,7 @@
 @import "../styles/detail.css";
 @import "../styles/filter.css";
 @import "../styles/habits.css";
+@import "../styles/focus.css";
 
 @theme inline {
   /* Couleurs — papier / encre / accents */

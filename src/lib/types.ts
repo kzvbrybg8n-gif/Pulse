@@ -51,6 +51,26 @@ export type FootNavItem = {
   Icon: ComponentType<IconProps>;
 };
 
+export type PomodoroMode = "focus" | "break";
+export type TimerPhase = "idle" | "running" | "paused";
+
+export type PomodoroSession = {
+  id: string;
+  mode: PomodoroMode;
+  durationSeconds: number;
+  startedAt: string;
+  endedAt: string | null;
+  taskId: string | null;
+  taskTitle?: string | null;
+};
+
+export type PomodoroSettings = {
+  focusMinutes: number;
+  breakMinutes: number;
+  longBreakMinutes: number;
+  longBreakInterval: number;
+};
+
 export type HabitPeriod = "day" | "week" | "month";
 
 export type Habit = {

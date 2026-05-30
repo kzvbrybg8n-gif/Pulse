@@ -253,3 +253,23 @@ export const IconCopy = (p: IconProps) => (
     <path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1" />
   </Svg>
 );
+
+export const IconPlay = (p: IconProps) => (
+  <Svg {...p} fill="currentColor">
+    <polygon points="5,3 19,12 5,21" stroke="none" />
+  </Svg>
+);
+
+export const IconPause = (p: IconProps) => (
+  <Svg {...p} fill="currentColor">
+    <rect x="6" y="4" width="4" height="16" rx="1" stroke="none" />
+    <rect x="14" y="4" width="4" height="16" rx="1" stroke="none" />
+  </Svg>
+);
+
+export const IconSkip = (p: IconProps) => (
+  <Svg {...p} fill="currentColor">
+    <polygon points="4,3 16,12 4,21" stroke="none" />
+    <rect x="18" y="3" width="3" height="18" rx="1" stroke="none" />
+  </Svg>
+);
