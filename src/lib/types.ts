@@ -16,6 +16,7 @@ export type Task = {
   prio: Priority;
   due: string | null;
   late: boolean;
+  dueAt?: string | null;
   tags: string[];
   recur: string | null;
   reminder: boolean;

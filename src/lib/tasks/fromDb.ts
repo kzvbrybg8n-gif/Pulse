@@ -93,6 +93,7 @@ export function taskFromRow(row: TaskRow, now: Date): Task {
     done: isDone,
     prio: toPriority(row.prio),
     due: formatDueLabel(row.due_at, now),
+    dueAt: row.due_at ?? null,
     late,
     tags,
     recur: row.recur_rule,

@@ -122,6 +122,7 @@ export function QuickAdd({ userId, listId = null, onAdd, defaultValue = "" }: Pr
         done: false,
         prio: result.prio,
         due: formatDueLabel(result.due_at, now),
+        dueAt: result.due_at,
         late: Boolean(result.due_at && new Date(result.due_at) < now),
         tags: result.tags,
         recur: null,

@@ -1,0 +1,185 @@
+/* ============================================================
+   PULSE — FilterPanel + styles sidebar filtres
+   Réutilise .pd-panel / .pd-head / .pd-body / .pd-footer.
+   ============================================================ */
+
+/* ── Sidebar : section filtres ───────────────────────────── */
+.fp-side-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 14px 12px 4px 14px;
+}
+.fp-side-add-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 22px;
+  height: 22px;
+  border-radius: 5px;
+  color: var(--fg-subtle);
+}
+.fp-side-add-btn:hover {
+  background: var(--bg-hover);
+  color: var(--fg-muted);
+}
+
+/* ── FilterPanel : sections internes ─────────────────────── */
+.fp-section {
+  padding: 12px 16px 10px;
+  border-top: 1px solid var(--border);
+}
+.fp-section:first-child {
+  border-top: none;
+  padding-top: 14px;
+}
+
+.fp-label {
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--fg-subtle);
+  margin-bottom: 8px;
+}
+
+.fp-name-input {
+  width: 100%;
+  font-family: var(--font-sans);
+  font-size: 14px;
+  color: var(--fg);
+  background: var(--bg-sunken);
+  border: 1px solid var(--border-strong);
+  border-radius: 6px;
+  padding: 7px 10px;
+  outline: none;
+}
+.fp-name-input:focus {
+  border-color: var(--accent);
+}
+
+/* Priority selector */
+.fp-prio-row {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+.fp-prio-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 5px 10px;
+  border-radius: 6px;
+  font-size: 12.5px;
+  font-weight: 500;
+  border: 1px solid var(--border-strong);
+  color: var(--fg-muted);
+}
+.fp-prio-btn.sel {
+  background: var(--accent-bg);
+  border-color: var(--accent);
+  color: var(--accent-text);
+}
+.fp-prio-btn:hover:not(.sel) {
+  background: var(--bg-hover);
+}
+
+/* Tags checklist */
+.fp-tags-list {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+  max-height: 160px;
+  overflow-y: auto;
+}
+.fp-tag-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 5px 4px;
+  border-radius: 5px;
+  cursor: pointer;
+}
+.fp-tag-row:hover {
+  background: var(--bg-hover);
+}
+.fp-tag-name {
+  font-family: var(--font-mono);
+  font-size: 12px;
+  color: var(--fg-muted);
+}
+
+/* Date range */
+.fp-date-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 8px;
+}
+.fp-date-lbl {
+  font-size: 12.5px;
+  color: var(--fg-muted);
+  width: 52px;
+  flex: none;
+}
+.fp-date-input {
+  font-family: var(--font-mono);
+  font-size: 12.5px;
+  color: var(--fg);
+  background: var(--bg-sunken);
+  border: 1px solid var(--border-strong);
+  border-radius: 5px;
+  padding: 3px 7px;
+  outline: none;
+}
+.fp-date-input:focus {
+  border-color: var(--accent);
+}
+
+/* showNoDue toggle */
+.fp-toggle-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 4px 0;
+  cursor: pointer;
+}
+.fp-toggle-lbl {
+  font-size: 13px;
+  color: var(--fg-muted);
+}
+
+/* Footer save button */
+.fp-save-btn {
+  flex: 1;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 8px 16px;
+  background: var(--accent);
+  color: var(--on-accent);
+  border-radius: 7px;
+  font-size: 13.5px;
+  font-weight: 600;
+}
+.fp-save-btn:hover:not(:disabled) {
+  background: var(--accent-hover);
+}
+.fp-save-btn:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+/* Close button in panel header */
+.fp-close-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  border-radius: 6px;
+  color: var(--fg-subtle);
+}
+.fp-close-btn:hover {
+  background: var(--bg-hover);
+}
