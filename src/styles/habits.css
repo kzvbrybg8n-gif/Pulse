@@ -9,7 +9,7 @@
   display: flex;
   align-items: center;
   gap: 12px;
-  padding: 12px 0;
+  padding: 12px 16px;
   border-bottom: 1px solid var(--line-1);
   position: relative;
 }
@@ -20,8 +20,8 @@
 
 /* Name + frequency */
 .hb-info {
-  flex: 0 0 auto;
-  width: 200px;
+  flex: 1;
+  min-width: 0;
 }
 
 .hb-name {
@@ -41,7 +41,7 @@
 
 /* Mini-calendar (7 dots) */
 .hb-dots {
-  flex: 1;
+  flex: 0 0 auto;
   display: flex;
   align-items: center;
   gap: 6px;
@@ -60,8 +60,7 @@
 }
 
 .hb-dot.today {
-  outline: 2px solid var(--green-1);
-  outline-offset: 1px;
+  box-shadow: 0 0 0 2px var(--bg-raised), 0 0 0 3.5px var(--green-1);
 }
 
 /* Streak badge */
@@ -82,11 +81,11 @@
 
 /* Check button */
 .hb-check-btn {
-  flex: 0 0 28px;
-  width: 28px;
-  height: 28px;
+  flex: 0 0 32px;
+  width: 32px;
+  height: 32px;
   border-radius: 50%;
-  border: 1.5px solid var(--line-2);
+  border: 1.75px solid var(--border-strong);
   background: transparent;
   cursor: pointer;
   display: flex;
@@ -99,6 +98,7 @@
 .hb-check-btn:hover {
   border-color: var(--green-1);
   background: var(--green-soft);
+  color: var(--green-1);
 }
 
 .hb-check-btn.done {
@@ -362,13 +362,11 @@
     opacity: 1;
   }
 
-  .hb-info {
-    width: auto;
-    flex: 1;
-    min-width: 0;
+  .hb-dots {
+    display: none;
   }
 
-  .hb-dots {
+  .hb-streak {
     display: none;
   }
 }
