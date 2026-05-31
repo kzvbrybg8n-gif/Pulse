@@ -1,6 +1,7 @@
 "use client";
 
 import Image from "next/image";
+import Link from "next/link";
 import { useEffect, useState } from "react";
 import { usePathname, useRouter } from "next/navigation";
 import {
@@ -149,16 +150,15 @@ export function Sidebar() {
         {smartLists.map((v) => {
           const isActive = pathname === v.href;
           return (
-            <button
+            <Link
               key={v.id}
-              type="button"
+              href={v.href}
               className={"pk-navitem" + (isActive ? " active" : "")}
-              onClick={() => router.push(v.href)}
             >
               <v.Icon size={18} />
               <span className="t">{v.label}</span>
               <span className="c">{v.count}</span>
-            </button>
+            </Link>
           );
         })}
       </nav>
@@ -185,15 +185,14 @@ export function Sidebar() {
           {filters.map((f) => {
             const href = `/filter/${f.id}`;
             return (
-              <button
+              <Link
                 key={f.id}
-                type="button"
+                href={href}
                 className={"pk-navitem" + (pathname === href ? " active" : "")}
-                onClick={() => router.push(href)}
               >
                 <IconHash size={18} />
                 <span className="t">{f.name}</span>
-              </button>
+              </Link>
             );
           })}
         </nav>
@@ -220,16 +219,15 @@ export function Sidebar() {
                   {f.lists.map((l) => {
                     const href = `/list/${l.id}`;
                     return (
-                      <button
+                      <Link
                         key={l.id}
-                        type="button"
+                        href={href}
                         className={"pk-listitem" + (pathname === href ? " active" : "")}
-                        onClick={() => router.push(href)}
                       >
                         <IconHash size={14} />
                         <span className="t">{l.name}</span>
                         <span className="c">{l.count}</span>
-                      </button>
+                      </Link>
                     );
                   })}
                 </div>
@@ -243,12 +241,23 @@ export function Sidebar() {
         {FOOT_NAV.map((v) => {
           const href = v.id === "habits" ? "/habits" : v.id === "focus" ? "/focus" : null;
           const isActive = href ? pathname.startsWith(href) : false;
+          if (href) {
+            return (
+              <Link
+                key={v.id}
+                href={href}
+                className={"pk-footitem" + (isActive ? " active" : "")}
+              >
+                <v.Icon size={18} />
+                <span className="t">{v.label}</span>
+              </Link>
+            );
+          }
           return (
             <button
               key={v.id}
               type="button"
               className={"pk-footitem" + (isActive ? " active" : "")}
-              onClick={href ? () => router.push(href) : undefined}
             >
               <v.Icon size={18} />
               <span className="t">{v.label}</span>

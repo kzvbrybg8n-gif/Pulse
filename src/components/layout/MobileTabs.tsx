@@ -1,6 +1,7 @@
 "use client";
 
-import { usePathname, useRouter } from "next/navigation";
+import Link from "next/link";
+import { usePathname } from "next/navigation";
 import {
   IconRepeat,
   IconSettings,
@@ -24,7 +25,6 @@ const TABS: Tab[] = [
 
 export function MobileTabs() {
   const pathname = usePathname();
-  const router = useRouter();
 
   return (
     <div className="pm-tabs">
@@ -32,15 +32,14 @@ export function MobileTabs() {
         const isActive =
           t.href === "/" ? pathname === "/" : pathname.startsWith(t.href);
         return (
-          <button
+          <Link
             key={t.id}
-            type="button"
+            href={t.href}
             className={"pm-tab" + (isActive ? " active" : "")}
-            onClick={() => router.push(t.href)}
           >
             <t.Icon size={22} />
             <span className="lab">{t.label}</span>
-          </button>
+          </Link>
         );
       })}
     </div>
