@@ -1,0 +1,328 @@
+/* ── Module Compte à rebours ──────────────────────────────── */
+
+/* Grille de cartes : 3 colonnes en bureau, 2 en tablette, 1 en mobile. */
+.cd-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: var(--space-5);
+  margin-top: var(--space-4);
+}
+
+@media (max-width: 900px) {
+  .cd-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (max-width: 600px) {
+  .cd-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* ── Carte ────────────────────────────────────────────────── */
+.cd-card {
+  display: flex;
+  flex-direction: column;
+  background: var(--bg-raised);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+}
+
+.cd-card-main {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-2);
+  padding: var(--space-6) var(--space-4) var(--space-5);
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  text-align: center;
+  font: inherit;
+  color: inherit;
+  transition: background var(--dur-fast) var(--ease-out);
+}
+
+.cd-card-main:hover {
+  background: var(--bg-hover);
+}
+
+.cd-card-main:focus-visible {
+  outline: 2px solid var(--green-1);
+  outline-offset: -2px;
+}
+
+.cd-card-head {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.cd-card-icon {
+  font-size: 18px;
+  line-height: 1;
+}
+
+.cd-card-name {
+  font-family: var(--font-sans);
+  font-size: var(--text-base);
+  font-weight: 600;
+  color: var(--fg);
+}
+
+/* Grand chiffre — accent vert, unités en petit */
+.cd-big {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 4px;
+  margin: var(--space-3) 0 var(--space-2);
+  color: var(--accent-text);
+}
+
+.cd-big-num {
+  font-family: var(--font-serif);
+  font-size: var(--text-3xl);
+  font-weight: 400;
+  line-height: 1;
+  letter-spacing: var(--tracking-tight);
+  font-variant-numeric: tabular-nums lining-nums;
+}
+
+.cd-big-unit {
+  font-family: var(--font-sans);
+  font-size: var(--text-md);
+  font-weight: 500;
+}
+
+/* « Jour J » : mot seul, pas de découpe chiffre/unité */
+.cd-big--word {
+  font-family: var(--font-serif);
+  font-size: var(--text-2xl);
+  font-weight: 400;
+  letter-spacing: var(--tracking-tight);
+}
+
+.cd-card-sub {
+  font-family: var(--font-sans);
+  font-size: var(--text-sm);
+  color: var(--fg-subtle);
+}
+
+/* ── Mode gestion (réorganiser / supprimer) ──────────────── */
+.cd-card-manage {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-2);
+  padding: var(--space-2) var(--space-3);
+  border-top: 1px solid var(--border);
+  background: var(--bg-sunken);
+}
+
+.cd-card-reorder {
+  display: flex;
+  gap: 6px;
+}
+
+.cd-mini-btn {
+  width: 28px;
+  height: 28px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  background: var(--bg-raised);
+  color: var(--fg-muted);
+  cursor: pointer;
+  transition: background var(--dur-fast) var(--ease-out);
+}
+
+.cd-mini-btn:hover:not(:disabled) {
+  background: var(--bg-hover);
+}
+
+.cd-mini-btn:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.cd-del-btn {
+  font-family: var(--font-sans);
+  font-size: 13px;
+  color: var(--signal);
+  background: transparent;
+  border: none;
+  border-radius: var(--radius-sm);
+  padding: 4px 8px;
+  cursor: pointer;
+}
+
+.cd-del-btn:hover {
+  background: var(--signal-bg);
+}
+
+/* ── Menu « … » de l'en-tête ─────────────────────────────── */
+.cd-menu {
+  position: relative;
+}
+
+.cd-menu-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  background: transparent;
+  color: var(--fg-muted);
+  font-size: 18px;
+  cursor: pointer;
+  transition: background var(--dur-fast) var(--ease-out);
+}
+
+.cd-menu-btn:hover {
+  background: var(--bg-hover);
+}
+
+.cd-menu-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 10;
+  background: transparent;
+  border: none;
+  cursor: default;
+}
+
+.cd-menu-pop {
+  position: absolute;
+  right: 0;
+  top: calc(100% + 4px);
+  z-index: 11;
+  min-width: 220px;
+  padding: var(--space-1);
+  background: var(--bg-overlay);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-md);
+}
+
+.cd-menu-item {
+  display: block;
+  width: 100%;
+  text-align: left;
+  padding: 8px 10px;
+  font-family: var(--font-sans);
+  font-size: 14px;
+  color: var(--fg);
+  background: transparent;
+  border: none;
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+}
+
+.cd-menu-item:hover {
+  background: var(--bg-hover);
+}
+
+.cd-menu-hint {
+  padding: 4px 10px 6px;
+  font-family: var(--font-sans);
+  font-size: 12px;
+  color: var(--fg-subtle);
+}
+
+/* ── Modale : icône + nom ────────────────────────────────── */
+.cd-name-row {
+  display: flex;
+  gap: var(--space-2);
+}
+
+.cd-icon-picker {
+  position: relative;
+  flex: none;
+}
+
+.cd-icon-btn {
+  width: 42px;
+  height: 38px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 18px;
+  background: var(--bg-sunken);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+}
+
+.cd-icon-pop {
+  position: absolute;
+  left: 0;
+  top: calc(100% + 4px);
+  z-index: 5;
+  width: 200px;
+  padding: var(--space-2);
+  background: var(--bg-overlay);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-md);
+}
+
+.cd-icon-none {
+  display: block;
+  width: 100%;
+  text-align: left;
+  padding: 4px 6px;
+  margin-bottom: 4px;
+  font-family: var(--font-sans);
+  font-size: 12px;
+  color: var(--fg-subtle);
+  background: transparent;
+  border: none;
+  border-radius: var(--radius-xs);
+  cursor: pointer;
+}
+
+.cd-icon-none:hover {
+  background: var(--bg-hover);
+}
+
+.cd-icon-grid {
+  display: grid;
+  grid-template-columns: repeat(6, 1fr);
+  gap: 2px;
+}
+
+.cd-icon-opt {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 4px;
+  font-size: 18px;
+  background: transparent;
+  border: none;
+  border-radius: var(--radius-xs);
+  cursor: pointer;
+}
+
+.cd-icon-opt:hover {
+  background: var(--bg-hover);
+}
+
+/* ── Modale : case à cocher liste intelligente ───────────── */
+.cd-check {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-family: var(--font-sans);
+  font-size: 14px;
+  color: var(--fg);
+  cursor: pointer;
+}
+
+.cd-check input {
+  width: 16px;
+  height: 16px;
+  accent-color: var(--green-1);
+}

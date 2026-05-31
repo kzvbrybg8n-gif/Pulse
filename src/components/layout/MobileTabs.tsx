@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import {
+  IconCalendarDays,
   IconRepeat,
   IconSettings,
   IconSun,
@@ -20,6 +21,12 @@ const TABS: Tab[] = [
   { id: "today", label: "Tâches", Icon: IconSun, href: "/" },
   { id: "habits", label: "Habitudes", Icon: IconRepeat, href: "/habits" },
   { id: "focus", label: "Focus", Icon: IconTimer, href: "/focus" },
+  {
+    id: "countdowns",
+    label: "Échéances",
+    Icon: IconCalendarDays,
+    href: "/countdowns",
+  },
   { id: "settings", label: "Réglages", Icon: IconSettings, href: "/settings" },
 ];
 

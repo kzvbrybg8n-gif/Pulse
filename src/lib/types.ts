@@ -83,6 +83,47 @@ export type FocusServerSettings = {
   soundEnabled: boolean;
 };
 
+/* ── Module Compte à rebours ─────────────────────────────── */
+
+export type CountdownType = "countdown" | "countup";
+
+export type CountdownRecurrence =
+  | "none"
+  | "daily"
+  | "weekly"
+  | "monthly"
+  | "yearly";
+
+export type CountdownDayCalcMode = "standard";
+
+/** Modèle de domaine (camelCase) ; voir countdownFromRow pour le mapping DB. */
+export type Countdown = {
+  id: string;
+  name: string;
+  icon: string | null;
+  /** Date pure « YYYY-MM-DD » (sans fuseau horaire). */
+  targetDate: string;
+  type: CountdownType;
+  reminder: string | null;
+  recurrence: CountdownRecurrence;
+  dayCalcMode: CountdownDayCalcMode;
+  showInSmartList: boolean;
+  sortOrder: number;
+  createdAt: string;
+};
+
+/** Champs éditables via le formulaire (création / mise à jour). */
+export type CountdownInput = {
+  name: string;
+  icon: string | null;
+  targetDate: string;
+  type: CountdownType;
+  reminder: string | null;
+  recurrence: CountdownRecurrence;
+  dayCalcMode: CountdownDayCalcMode;
+  showInSmartList: boolean;
+};
+
 export type HabitPeriod = "day" | "week" | "month";
 
 export type Habit = {

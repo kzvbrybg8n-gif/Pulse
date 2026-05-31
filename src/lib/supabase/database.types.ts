@@ -66,6 +66,54 @@ export type Database = {
         }
         Relationships: []
       }
+      countdowns: {
+        Row: {
+          created_at: string
+          day_calc_mode: Database["public"]["Enums"]["countdown_day_calc_mode"]
+          icon: string | null
+          id: string
+          name: string
+          recurrence: Database["public"]["Enums"]["countdown_recurrence"]
+          reminder: string | null
+          show_in_smart_list: boolean
+          sort_order: number
+          target_date: string
+          type: Database["public"]["Enums"]["countdown_type"]
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          day_calc_mode?: Database["public"]["Enums"]["countdown_day_calc_mode"]
+          icon?: string | null
+          id?: string
+          name: string
+          recurrence?: Database["public"]["Enums"]["countdown_recurrence"]
+          reminder?: string | null
+          show_in_smart_list?: boolean
+          sort_order?: number
+          target_date: string
+          type?: Database["public"]["Enums"]["countdown_type"]
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          day_calc_mode?: Database["public"]["Enums"]["countdown_day_calc_mode"]
+          icon?: string | null
+          id?: string
+          name?: string
+          recurrence?: Database["public"]["Enums"]["countdown_recurrence"]
+          reminder?: string | null
+          show_in_smart_list?: boolean
+          sort_order?: number
+          target_date?: string
+          type?: Database["public"]["Enums"]["countdown_type"]
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       habit_logs: {
         Row: {
           created_at: string
@@ -479,7 +527,9 @@ export type Database = {
       [_ in never]: never
     }
     Enums: {
-      [_ in never]: never
+      countdown_day_calc_mode: "standard"
+      countdown_recurrence: "none" | "daily" | "weekly" | "monthly" | "yearly"
+      countdown_type: "countdown" | "countup"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -609,6 +659,10 @@ export const Constants = {
     Enums: {},
   },
   public: {
-    Enums: {},
+    Enums: {
+      countdown_day_calc_mode: ["standard"],
+      countdown_recurrence: ["none", "daily", "weekly", "monthly", "yearly"],
+      countdown_type: ["countdown", "countup"],
+    },
   },
 } as const

@@ -290,6 +290,16 @@ export function Sidebar() {
             </button>
           );
         })}
+        <Link
+          href="/countdowns"
+          className={
+            "pk-footitem" +
+            (pathname.startsWith("/countdowns") ? " active" : "")
+          }
+        >
+          <IconCalendarDays size={18} />
+          <span className="t">Compte à rebours</span>
+        </Link>
         <button type="button" className="pk-footitem" onClick={signOut}>
           <IconX size={18} />
           <span className="t">Déconnexion</span>
