@@ -33,6 +33,17 @@ const PRIO_LABELS: Record<Priority, string> = {
   4: "Aucune",
 };
 
+const RECUR_PRESETS = [
+  { label: "Quotidien", rule: "FREQ=DAILY" },
+  { label: "Hebdo", rule: "FREQ=WEEKLY" },
+  { label: "Mensuel", rule: "FREQ=MONTHLY" },
+  { label: "Tous les 2 jours", rule: "FREQ=DAILY;INTERVAL=2" },
+] as const;
+
+function recurLabel(rule: string): string {
+  return RECUR_PRESETS.find((p) => p.rule === rule)?.label ?? rule;
+}
+
 /** datetime-local (valeur de l'input) → ISO UTC, ou null si vide. */
 function localToIso(local: string): string | null {
   if (!local) return null;
@@ -297,7 +308,7 @@ export function QuickAdd({ userId, listId = null, onAdd, defaultValue = "" }: Pr
           onClick={() => togglePanel("recur")}
         >
           <IconRepeat size={14} />
-          <span>{eff.recur ?? "Récurrence"}</span>
+          <span>{eff.recur ? recurLabel(eff.recur) : "Récurrence"}</span>
         </button>
 
         <button
@@ -381,17 +392,19 @@ export function QuickAdd({ userId, listId = null, onAdd, defaultValue = "" }: Pr
 
       {panel === "recur" && (
         <div className="pk-qa-panel">
-          <input
-            type="text"
-            className="pd-recur-input"
-            placeholder="FREQ=DAILY"
-            value={recurValue}
-            autoFocus
-            onChange={(e) => setRecurValue(e.target.value)}
-            onKeyDown={(e) => {
-              if (e.key === "Enter") setPanel(null);
-            }}
-          />
+          {RECUR_PRESETS.map(({ label, rule }) => (
+            <button
+              key={rule}
+              type="button"
+              className={"pk-qa-recur-preset" + (recurValue === rule ? " sel" : "")}
+              onClick={() => {
+                setRecurValue(recurValue === rule ? "" : rule);
+                setPanel(null);
+              }}
+            >
+              {label}
+            </button>
+          ))}
           {recurValue && (
             <button type="button" className="pk-qa-reset" onClick={() => setRecurValue("")}>
               Effacer

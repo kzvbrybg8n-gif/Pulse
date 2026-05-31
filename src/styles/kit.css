@@ -86,6 +86,12 @@ button { font-family: inherit; cursor: pointer; }
 .pk-qa-tag-del { display: inline-flex; align-items: center; margin-left: 4px; border: none;
   background: none; color: var(--accent-text); padding: 0; }
 .pk-qa-tag-del:hover { color: var(--signal); }
+.pk-qa-recur-preset { display: inline-flex; align-items: center; font-family: inherit;
+  font-size: 13px; color: var(--fg-subtle); background: var(--bg-raised);
+  border: 1px solid var(--border); border-radius: var(--radius-pill); padding: 6px 14px;
+  transition: border-color var(--dur-fast) var(--ease-out), color var(--dur-fast) var(--ease-out); }
+.pk-qa-recur-preset:hover { border-color: var(--accent); color: var(--fg); }
+.pk-qa-recur-preset.sel { color: var(--accent-text); border-color: var(--accent); background: var(--accent-bg); }
 
 /* ---- Habitudes -------------------------------------------- */
 .pk-habit { background: var(--bg-raised); border: 1px solid var(--border);
