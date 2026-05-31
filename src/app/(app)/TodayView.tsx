@@ -44,13 +44,13 @@ function Section({
   accent,
   children,
 }: {
-  label: string;
+  label?: string;
   accent?: boolean;
   children: ReactNode;
 }) {
   return (
     <div className="pk-section">
-      <div className={"pk-section-lab" + (accent ? " accent" : "")}>{label}</div>
+      {label && <div className={"pk-section-lab" + (accent ? " accent" : "")}>{label}</div>}
       <div className="pk-listcard">{children}</div>
     </div>
   );
@@ -291,7 +291,7 @@ export function TodayView({ initialOverdue, initialToday, dateLabel, userId }: P
               )}
 
               {today.length > 0 && (
-                <Section label="Aujourd'hui">
+                <Section label={overdue.length > 0 ? "Aujourd'hui" : undefined}>
                   {today.map((t) => (
                     <TaskItem
                       key={t.id}

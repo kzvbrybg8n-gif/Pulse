@@ -24,8 +24,8 @@
   /* Encre — textes & traits chauds */
   --ink-1:    #211F1B;   /* texte primaire */
   --ink-2:    #57534A;   /* texte secondaire */
-  --ink-3:    #8A857A;   /* texte tertiaire / méta */
-  --ink-4:    #B5AFA2;   /* faible : P4, placeholders, désactivé */
+  --ink-3:    #6E6A5F;   /* texte tertiaire / méta — ≈5.4:1 sur papier (AA) */
+  --ink-4:    #8F897C;   /* faible : P4, placeholders, désactivé — ≈3.5:1 (décoratif) */
 
   /* Traits (hairlines) */
   --line-1:   #E4DFD4;   /* trait standard */

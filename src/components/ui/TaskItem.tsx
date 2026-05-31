@@ -17,9 +17,21 @@ type Props = {
 export function TaskItem({ task, onToggle, onToggleSub, onEdit, hoverDemo }: Props) {
   return (
     <div className="pk-task-block">
-      <div className={"pk-task" + (hoverDemo ? " hover-demo" : "")} tabIndex={0}>
+      <div className={"pk-task" + (hoverDemo ? " hover-demo" : "")}>
         <Checkbox done={task.done} onToggle={() => onToggle?.(task.id)} />
-        <div className="pk-task-mid">
+        <div
+          className="pk-task-mid"
+          role="button"
+          tabIndex={0}
+          aria-label={`Modifier « ${task.title} »`}
+          onClick={() => onEdit?.(task.id)}
+          onKeyDown={(e) => {
+            if (e.key === "Enter" || e.key === " ") {
+              e.preventDefault();
+              onEdit?.(task.id);
+            }
+          }}
+        >
           <div className={"pk-task-title" + (task.done ? " done" : "")}>{task.title}</div>
           <TaskMeta task={task} />
         </div>

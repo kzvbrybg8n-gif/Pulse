@@ -142,7 +142,7 @@ export function Sidebar() {
 
       <div className="pk-side-search">
         <IconSearch size={16} />
-        <input placeholder="Rechercher une tâche…" />
+        <input aria-label="Rechercher une tâche" placeholder="Rechercher une tâche…" />
       </div>
 
       <div className="pk-side-lab">Listes intelligentes</div>

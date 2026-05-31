@@ -1,4 +1,5 @@
 import { IconBell, IconCornerDownRight, IconNote, IconRepeat } from "@/components/icons";
+import { formatDueLabel } from "@/lib/tasks/fromDb";
 import type { Task } from "@/lib/types";
 
 type Props = { task: Task };
@@ -20,6 +21,9 @@ export function TaskMeta({ task }: Props) {
       {task.reminder && (
         <span className="pk-meta-ico" title="Rappel">
           <IconBell size={13} />
+          {task.remindAt && (
+            <span className="pk-subcount">{formatDueLabel(task.remindAt, new Date())}</span>
+          )}
         </span>
       )}
       {task.note && (

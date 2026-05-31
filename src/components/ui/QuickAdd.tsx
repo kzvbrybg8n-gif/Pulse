@@ -253,7 +253,8 @@ export function QuickAdd({ userId, listId = null, onAdd, defaultValue = "" }: Pr
         <input
           className="pk-qa-input"
           value={text}
-          placeholder="Relire le mémo demain 14h !urgent #client"
+          aria-label="Ajouter une tâche"
+          placeholder="Relire le mémo demain 14h !! #client"
           disabled={submitting}
           onChange={(e) => setText(e.target.value)}
           onKeyDown={handleKeyDown}

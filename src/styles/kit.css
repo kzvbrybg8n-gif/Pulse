@@ -27,20 +27,20 @@ button { font-family: inherit; cursor: pointer; }
 /* ---- Ligne de tâche --------------------------------------- */
 .pk-task {
   display: flex; align-items: center; gap: var(--space-4);
-  padding: 14px 16px; cursor: pointer; min-height: 56px;
+  padding: var(--space-4); cursor: default; min-height: 60px;
   transition: background var(--dur-fast) var(--ease-out);
 }
 .pk-task:hover { background: var(--bg-hover); }
 .pk-task + .pk-task { border-top: 1px solid var(--border); }
-.pk-task-mid { flex: 1; min-width: 0; }
-.pk-task-title { font-size: 15px; color: var(--fg); line-height: 1.35; }
+.pk-task-mid { flex: 1; min-width: 0; cursor: pointer; }
+.pk-task-title { font-size: var(--text-base); color: var(--fg); line-height: 1.35; }
 .pk-task-title.done { color: var(--fg-faint); text-decoration: line-through; }
 .pk-task-meta { display: flex; gap: 10px; align-items: center; margin-top: 4px; flex-wrap: wrap; }
-.pk-due { font-family: var(--font-mono); font-size: 11px; color: var(--fg-subtle); white-space: nowrap; }
+.pk-due { font-family: var(--font-mono); font-size: var(--text-xs); color: var(--fg-subtle); white-space: nowrap; }
 .pk-due.late { color: var(--signal); }
 .pk-meta-ico { color: var(--fg-subtle); display: inline-flex; }
-.pk-subcount { font-family: var(--font-mono); font-size: 11px; color: var(--fg-subtle); }
-.pk-tag { font-family: var(--font-mono); font-size: 11px; color: var(--accent-text);
+.pk-subcount { font-family: var(--font-mono); font-size: var(--text-xs); color: var(--fg-subtle); }
+.pk-tag { font-family: var(--font-mono); font-size: var(--text-xs); color: var(--accent-text);
   background: var(--accent-bg); padding: 1px 8px; border-radius: var(--radius-pill); }
 
 /* ---- Liste / carte ---------------------------------------- */
@@ -178,7 +178,7 @@ button { font-family: inherit; cursor: pointer; }
 .pk-view-head { display: flex; align-items: baseline; justify-content: space-between; margin-bottom: 8px; }
 .pk-view-title { font-family: var(--font-serif); font-size: 52px; font-weight: 300; letter-spacing: -0.025em; line-height: 1.04; color: var(--fg); }
 .pk-view-sub { font-family: var(--font-serif); font-style: italic; font-weight: 300; font-size: 18px; color: var(--fg-muted); }
-.pk-view-count { font-family: var(--font-mono); font-size: 13px; color: var(--fg-subtle); }
+.pk-view-count { font-family: var(--font-mono); font-size: var(--text-xs); color: var(--fg-subtle); }
 .pk-section-lab { font-size: 11px; font-weight: 600; letter-spacing: .12em; text-transform: uppercase;
   color: var(--fg-subtle); margin: 28px 0 10px; }
 .pk-empty { text-align: center; padding: 48px 20px; color: var(--fg-subtle); }
