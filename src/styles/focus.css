@@ -360,80 +360,122 @@
   color: var(--green-2);
 }
 
-/* ── History ─────────────────────────────────────────── */
+/* ── Titre de section (Aperçu / Enregistrement) ──────── */
 
-.fc-history {
+.fc-section-title {
+  font-family: var(--font-serif);
+  font-size: 17px;
+  font-weight: 400;
+  color: var(--fg);
+  margin-bottom: 12px;
+}
+
+/* ── Aperçu — cartes de compteurs ─────────────────────── */
+
+.fc-overview {
   margin-top: 32px;
   padding-top: 20px;
   border-top: 1px solid var(--line-1);
 }
 
-.fc-hist-title {
-  font-size: 11px;
-  font-weight: 600;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-  color: var(--fg-subtle);
+.fc-stats-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+}
+
+.fc-stat-card {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  background: var(--bg-sunken);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  padding: 14px 16px;
+}
+
+.fc-stat-lbl {
+  font-family: var(--font-sans);
+  font-size: 12px;
+  color: var(--fg-muted);
+}
+
+.fc-stat-val {
+  font-family: var(--font-serif);
+  font-size: 26px;
+  font-weight: 400;
+  color: var(--fg);
+  line-height: 1;
+}
+
+/* ── Enregistrement de Focus (timeline par jour) ─────── */
+
+.fc-log {
+  margin-top: 32px;
+  padding-top: 20px;
+  border-top: 1px solid var(--line-1);
+}
+
+.fc-log-day {
   margin-bottom: 8px;
 }
 
-.fc-hist-list {
-  display: flex;
-  flex-direction: column;
+.fc-log-day-label {
+  font-family: var(--font-sans);
+  font-size: 12px;
+  color: var(--fg-subtle);
+  margin: 10px 0 4px;
 }
 
-.fc-hist-item {
+.fc-log-item {
   display: flex;
   align-items: center;
-  gap: 10px;
-  padding: 7px 8px;
+  gap: 12px;
+  padding: 8px 4px 8px 6px;
   border-radius: var(--radius-sm);
   transition: background 0.1s;
 }
 
-.fc-hist-item:hover {
+.fc-log-item:hover {
   background: var(--bg-hover);
 }
 
-.fc-hist-badge {
-  font-size: 10px;
-  font-weight: 700;
-  letter-spacing: 0.07em;
-  text-transform: uppercase;
-  padding: 2px 7px;
+.fc-log-dot {
+  flex: none;
+  width: 9px;
+  height: 9px;
   border-radius: var(--radius-pill);
-  background: var(--green-soft);
-  color: var(--green-3);
-  white-space: nowrap;
-  flex-shrink: 0;
+  border: 2px solid var(--green-1);
+  background: transparent;
 }
 
-.fc-hist-badge.break {
-  background: var(--paper-3);
-  color: var(--ink-3);
+.fc-log-body {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
 }
 
-.fc-hist-duration {
+.fc-log-time {
   font-family: var(--font-mono);
   font-size: 12px;
-  color: var(--fg-muted);
-  flex-shrink: 0;
-  min-width: 36px;
+  color: var(--fg-subtle);
 }
 
-.fc-hist-task {
-  font-size: 13px;
-  color: var(--fg-muted);
-  flex: 1;
+.fc-log-task {
+  font-size: 13.5px;
+  color: var(--fg);
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
 
-.fc-hist-time {
+.fc-log-dur {
+  flex: none;
+  font-family: var(--font-mono);
   font-size: 12px;
-  color: var(--fg-subtle);
-  flex-shrink: 0;
+  color: var(--fg-muted);
 }
 
 /* ── Mobile ──────────────────────────────────────────── */

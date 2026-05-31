@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import {
   IconCheck,
   IconPause,
@@ -43,14 +43,38 @@ function formatDuration(seconds: number): string {
   return rem ? `${h} h ${rem} min` : `${h} h`;
 }
 
-function formatRelative(iso: string): string {
-  const diff = Date.now() - new Date(iso).getTime();
-  const min = Math.floor(diff / 60_000);
-  if (min < 1) return "à l'instant";
-  if (min < 60) return `il y a ${min} min`;
-  const h = Math.floor(min / 60);
-  if (h < 24) return `il y a ${h} h`;
-  return `il y a ${Math.floor(h / 24)} j`;
+/** Durée compacte « 25m » / « 1h42m » pour l'enregistrement de focus. */
+function formatCompact(seconds: number): string {
+  const m = Math.round(seconds / 60);
+  if (m < 60) return `${m}m`;
+  const h = Math.floor(m / 60);
+  const rem = m % 60;
+  return rem ? `${h}h${String(rem).padStart(2, "0")}` : `${h}h`;
+}
+
+/** Heures+minutes « 0 m » / « 9 h 12 m » pour les cartes d'aperçu. */
+function formatHM(seconds: number): string {
+  const m = Math.round(seconds / 60);
+  if (m < 60) return `${m} m`;
+  const h = Math.floor(m / 60);
+  const rem = m % 60;
+  return rem ? `${h} h ${rem} m` : `${h} h`;
+}
+
+const CLOCK_FMT = new Intl.DateTimeFormat("fr-FR", { hour: "2-digit", minute: "2-digit" });
+const DAY_FMT = new Intl.DateTimeFormat("fr-FR", { day: "numeric", month: "long" });
+
+function dayKey(d: Date): string {
+  return [d.getFullYear(), d.getMonth(), d.getDate()].join("-");
+}
+
+function dayLabel(d: Date): string {
+  const today = new Date();
+  const yest = new Date();
+  yest.setDate(today.getDate() - 1);
+  if (dayKey(d) === dayKey(today)) return "Aujourd'hui";
+  if (dayKey(d) === dayKey(yest)) return "Hier";
+  return DAY_FMT.format(d);
 }
 
 /**
@@ -89,9 +113,11 @@ function playChime(next: PomodoroMode): void {
 /* ── Props ───────────────────────────────────────────── */
 
 type OpenTask = { id: string; title: string };
+type FocusLogEntry = { startedAt: string; durationSeconds: number };
 
 type Props = {
   initialSessions: PomodoroSession[];
+  initialFocusLog: FocusLogEntry[];
   openTasks: OpenTask[];
   userId: string;
   initialTaskId: string | null;
@@ -104,6 +130,7 @@ type FinishedRecap = { title: string; seconds: number };
 
 export function FocusView({
   initialSessions,
+  initialFocusLog,
   openTasks,
   userId,
   initialTaskId,
@@ -127,6 +154,7 @@ export function FocusView({
   // Data state
   const [taskList, setTaskList] = useState<OpenTask[]>(openTasks);
   const [sessions, setSessions] = useState<PomodoroSession[]>(initialSessions);
+  const [focusLog, setFocusLog] = useState<FocusLogEntry[]>(initialFocusLog);
   const [settingsOpen, setSettingsOpen] = useState(false);
 
   // Temps total cumulé en focus sur la tâche sélectionnée (toutes sessions)
@@ -210,9 +238,10 @@ export function FocusView({
         taskTitle: taskList.find((t) => t.id === selectedTaskId)?.title ?? null,
       };
       setSessions((prev) => [newSess, ...prev].slice(0, 20));
-      // Met à jour le cumul affiché si la session focus concerne la tâche active
-      if (mode === "focus" && selectedTaskId) {
-        setTaskFocusSeconds((s) => s + durSeconds);
+      if (mode === "focus") {
+        setFocusLog((prev) => [...prev, { startedAt, durationSeconds: durSeconds }]);
+        // Met à jour le cumul affiché si la session focus concerne la tâche active
+        if (selectedTaskId) setTaskFocusSeconds((s) => s + durSeconds);
       }
     }
 
@@ -354,6 +383,42 @@ export function FocusView({
   }
 
   const selectedTask = taskList.find((t) => t.id === selectedTaskId) ?? null;
+
+  /* ── Aperçu (compteurs) ────────────────────────────── */
+
+  const overview = useMemo(() => {
+    const todayK = dayKey(new Date());
+    let todayPomos = 0;
+    let todaySeconds = 0;
+    let totalSeconds = 0;
+    for (const e of focusLog) {
+      totalSeconds += e.durationSeconds;
+      if (dayKey(new Date(e.startedAt)) === todayK) {
+        todayPomos++;
+        todaySeconds += e.durationSeconds;
+      }
+    }
+    return {
+      todayPomos,
+      todaySeconds,
+      totalPomos: focusLog.length,
+      totalSeconds,
+    };
+  }, [focusLog]);
+
+  /* ── Enregistrement de Focus (groupé par jour) ─────── */
+
+  const focusByDay = useMemo(() => {
+    const focusSessions = sessions.filter((s) => s.mode === "focus");
+    const groups = new Map<string, { label: string; items: PomodoroSession[] }>();
+    for (const s of focusSessions) {
+      const d = new Date(s.startedAt);
+      const k = dayKey(d);
+      if (!groups.has(k)) groups.set(k, { label: dayLabel(d), items: [] });
+      groups.get(k)!.items.push(s);
+    }
+    return Array.from(groups.values());
+  }, [sessions]);
 
   /* ── Render ────────────────────────────────────────── */
 
@@ -557,27 +622,52 @@ export function FocusView({
             </div>
           )}
 
-          {/* History */}
-          {sessions.length > 0 && (
-            <div className="fc-history">
-              <div className="fc-hist-title">Historique récent</div>
-              <div className="fc-hist-list">
-                {sessions.slice(0, 10).map((s) => (
-                  <div key={s.id} className="fc-hist-item">
-                    <span className={`fc-hist-badge${s.mode === "break" ? " break" : ""}`}>
-                      {s.mode === "focus" ? "Focus" : "Pause"}
-                    </span>
-                    <span className="fc-hist-duration">
-                      {Math.round(s.durationSeconds / 60)} min
-                    </span>
-                    {s.taskTitle && (
-                      <span className="fc-hist-task">{s.taskTitle}</span>
-                    )}
-                    <span className="fc-hist-time">{formatRelative(s.startedAt)}</span>
-                  </div>
-                ))}
+          {/* Aperçu — compteurs de focus */}
+          <section className="fc-overview">
+            <h2 className="fc-section-title">Aperçu</h2>
+            <div className="fc-stats-grid">
+              <div className="fc-stat-card">
+                <span className="fc-stat-lbl">Pomo d&apos;aujourd&apos;hui</span>
+                <span className="fc-stat-val">{overview.todayPomos}</span>
+              </div>
+              <div className="fc-stat-card">
+                <span className="fc-stat-lbl">Focus d&apos;aujourd&apos;hui</span>
+                <span className="fc-stat-val">{formatHM(overview.todaySeconds)}</span>
+              </div>
+              <div className="fc-stat-card">
+                <span className="fc-stat-lbl">Total des Pomos</span>
+                <span className="fc-stat-val">{overview.totalPomos}</span>
+              </div>
+              <div className="fc-stat-card">
+                <span className="fc-stat-lbl">Durée totale de Focus</span>
+                <span className="fc-stat-val">{formatHM(overview.totalSeconds)}</span>
               </div>
             </div>
+          </section>
+
+          {/* Enregistrement de Focus — sessions groupées par jour */}
+          {focusByDay.length > 0 && (
+            <section className="fc-log">
+              <h2 className="fc-section-title">L&apos;enregistrement de Focus</h2>
+              {focusByDay.map((group) => (
+                <div key={group.label} className="fc-log-day">
+                  <div className="fc-log-day-label">{group.label}</div>
+                  {group.items.map((s) => (
+                    <div key={s.id} className="fc-log-item">
+                      <span className="fc-log-dot" aria-hidden="true" />
+                      <div className="fc-log-body">
+                        <span className="fc-log-time">
+                          {CLOCK_FMT.format(new Date(s.startedAt))}
+                          {s.endedAt && ` – ${CLOCK_FMT.format(new Date(s.endedAt))}`}
+                        </span>
+                        <span className="fc-log-task">{s.taskTitle ?? "Sans tâche"}</span>
+                      </div>
+                      <span className="fc-log-dur">{formatCompact(s.durationSeconds)}</span>
+                    </div>
+                  ))}
+                </div>
+              ))}
+            </section>
           )}
         </div>
       </main>

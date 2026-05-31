@@ -36,12 +36,18 @@ export default async function FocusPage({
     data: { user },
   } = await supabase.auth.getUser();
 
-  const [{ data: sessionsRaw }, { data: tasksRaw }, { data: prefsRaw }] = await Promise.all([
+  const [{ data: sessionsRaw }, { data: focusLogRaw }, { data: tasksRaw }, { data: prefsRaw }] =
+    await Promise.all([
     supabase
       .from("pomodoro_sessions")
       .select("id, mode, duration_seconds, started_at, ended_at, task_id, tasks(title)")
       .order("started_at", { ascending: false })
       .limit(20),
+    // Toutes les sessions de focus (colonnes légères) pour les compteurs cumulés.
+    supabase
+      .from("pomodoro_sessions")
+      .select("started_at, duration_seconds")
+      .eq("mode", "focus"),
     supabase
       .from("tasks")
       .select("id, title")
@@ -85,6 +91,10 @@ export default async function FocusPage({
     }),
   );
 
+  const focusLog = ((focusLogRaw ?? []) as { started_at: string; duration_seconds: number }[]).map(
+    (r) => ({ startedAt: r.started_at, durationSeconds: r.duration_seconds }),
+  );
+
   const openTasks = (tasksRaw ?? []) as { id: string; title: string }[];
 
   // Si une tâche est passée en paramètre mais qu'elle n'est plus "open"
@@ -97,6 +107,7 @@ export default async function FocusPage({
   return (
     <FocusView
       initialSessions={sessions}
+      initialFocusLog={focusLog}
       openTasks={openTasks}
       userId={user?.id ?? ""}
       initialTaskId={preselectTaskId}
