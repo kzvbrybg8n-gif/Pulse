@@ -3,8 +3,6 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { IconPlus } from "@/components/icons";
-import { MobileTabs } from "@/components/layout/MobileTabs";
-import { Sidebar } from "@/components/layout/Sidebar";
 import { HabitModal } from "@/components/habits/HabitModal";
 import { HabitRow } from "@/components/habits/HabitRow";
 import { createClient } from "@/lib/supabase/client";
@@ -157,9 +155,7 @@ export function HabitsView({ initialHabits, userId }: Props) {
   const total = habits.length;
 
   return (
-    <div className="pk-app">
-      <Sidebar />
-
+    <>
       <main className="pk-content">
         <div className="pk-content-inner">
           <div className="pk-view-head">
@@ -226,8 +222,6 @@ export function HabitsView({ initialHabits, userId }: Props) {
         </div>
       </main>
 
-      <MobileTabs />
-
       {modalTarget !== null && (
         <HabitModal
           initialHabit={modalTarget === "new" ? null : modalTarget}
@@ -237,6 +231,6 @@ export function HabitsView({ initialHabits, userId }: Props) {
           onClose={() => setModalTarget(null)}
         />
       )}
-    </div>
+    </>
   );
 }

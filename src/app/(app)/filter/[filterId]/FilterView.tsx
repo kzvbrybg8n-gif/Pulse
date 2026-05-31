@@ -1,8 +1,6 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { MobileTabs } from "@/components/layout/MobileTabs";
-import { Sidebar } from "@/components/layout/Sidebar";
 import { FilterPanel } from "@/components/ui/FilterPanel";
 import { TaskDetail } from "@/components/ui/TaskDetail";
 import { TaskItem } from "@/components/ui/TaskItem";
@@ -123,18 +121,14 @@ export function FilterView({ filterId, userId }: Props) {
 
   if (!loading && !spec) {
     return (
-      <div className="pk-app">
-        <Sidebar />
-        <main className="pk-content">
-          <div className="pk-content-inner">
-            <div className="pk-empty">
-              <div className="pk-empty-title">Filtre introuvable</div>
-              <div className="pk-empty-sub">Ce filtre n&apos;existe pas ou a été supprimé.</div>
-            </div>
+      <main className="pk-content">
+        <div className="pk-content-inner">
+          <div className="pk-empty">
+            <div className="pk-empty-title">Filtre introuvable</div>
+            <div className="pk-empty-sub">Ce filtre n&apos;existe pas ou a été supprimé.</div>
           </div>
-        </main>
-        <MobileTabs />
-      </div>
+        </div>
+      </main>
     );
   }
 
@@ -142,9 +136,7 @@ export function FilterView({ filterId, userId }: Props) {
   const openCount = filteredTasks.filter((t) => !t.done).length;
 
   return (
-    <div className="pk-app">
-      <Sidebar />
-
+    <>
       <main className="pk-content">
         <div className="pk-content-inner">
           <div className="pk-view-head">
@@ -196,8 +188,6 @@ export function FilterView({ filterId, userId }: Props) {
         </div>
       </main>
 
-      <MobileTabs />
-
       {selectedTaskId && (
         <TaskDetail
           taskId={selectedTaskId}
@@ -221,6 +211,6 @@ export function FilterView({ filterId, userId }: Props) {
           onClose={() => setEditingFilter(false)}
         />
       )}
-    </div>
+    </>
   );
 }

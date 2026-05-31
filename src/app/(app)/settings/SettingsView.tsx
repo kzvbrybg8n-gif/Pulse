@@ -3,8 +3,6 @@
 import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { IconLogOut, IconX } from "@/components/icons";
-import { MobileTabs } from "@/components/layout/MobileTabs";
-import { Sidebar } from "@/components/layout/Sidebar";
 import { createClient } from "@/lib/supabase/client";
 import { saveSettings } from "@/lib/pomodoro/settings";
 
@@ -224,8 +222,7 @@ export function SettingsView({ email, userId, initialPrefs }: Props) {
 
   /* ── Rendu ─── */
   return (
-    <div className="pk-app">
-      <Sidebar />
+    <>
       <main className="pk-content">
         <div className="pk-content-inner sg-wrap">
           <h1 className="sg-title">Réglages</h1>
@@ -494,8 +491,6 @@ export function SettingsView({ email, userId, initialPrefs }: Props) {
             </div>
           </section>
         </div>
-
-        <MobileTabs />
       </main>
 
       {/* ── Modale de suppression ── */}
@@ -510,7 +505,7 @@ export function SettingsView({ email, userId, initialPrefs }: Props) {
           onClose={() => setDeleteModalOpen(false)}
         />
       )}
-    </div>
+    </>
   );
 }
 

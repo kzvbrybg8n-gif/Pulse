@@ -23,7 +23,7 @@ export default async function TodayPage() {
   if (error) {
     // État d'erreur explicite (convention CLAUDE.md).
     return (
-      <div className="pk-app">
+      <>
         <main className="pk-content">
           <div className="pk-content-inner">
             <div className="pk-empty">
@@ -32,7 +32,7 @@ export default async function TodayPage() {
             </div>
           </div>
         </main>
-      </div>
+      </>
     );
   }
 

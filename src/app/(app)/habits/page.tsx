@@ -21,7 +21,7 @@ export default async function HabitsPage() {
 
   if (error) {
     return (
-      <div className="pk-app">
+      <>
         <main className="pk-content">
           <div className="pk-content-inner">
             <div className="pk-empty">
@@ -30,7 +30,7 @@ export default async function HabitsPage() {
             </div>
           </div>
         </main>
-      </div>
+      </>
     );
   }
 

@@ -1,6 +1,8 @@
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { PushManager } from "@/components/ui/PushManager";
+import { Sidebar } from "@/components/layout/Sidebar";
+import { MobileTabs } from "@/components/layout/MobileTabs";
 
 /**
  * Layout des routes applicatives protégées.
@@ -20,10 +22,18 @@ export default async function AppLayout({
     redirect("/login");
   }
 
+  // Chrome persistante : Sidebar + MobileTabs vivent dans le layout, donc
+  // restent montés d'une vue à l'autre (le layout ne se re-rend pas lors
+  // d'une navigation entre routes sœurs — seul {children} change). Chaque
+  // vue ne rend plus que son contenu (<main class="pk-content"> + modales).
   return (
     <>
       <PushManager />
-      {children}
+      <div className="pk-app">
+        <Sidebar />
+        {children}
+        <MobileTabs />
+      </div>
     </>
   );
 }

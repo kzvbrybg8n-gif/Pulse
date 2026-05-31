@@ -17,7 +17,7 @@ export default async function AllPage() {
 
   if (error) {
     return (
-      <div className="pk-app">
+      <>
         <main className="pk-content">
           <div className="pk-content-inner">
             <div className="pk-empty">
@@ -26,7 +26,7 @@ export default async function AllPage() {
             </div>
           </div>
         </main>
-      </div>
+      </>
     );
   }
 

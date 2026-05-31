@@ -8,8 +8,6 @@ import {
   IconSkip,
   IconX,
 } from "@/components/icons";
-import { MobileTabs } from "@/components/layout/MobileTabs";
-import { Sidebar } from "@/components/layout/Sidebar";
 import { createClient } from "@/lib/supabase/client";
 import { loadSettings, saveSettings } from "@/lib/pomodoro/settings";
 import type {
@@ -217,9 +215,7 @@ export function FocusView({ initialSessions, openTasks, userId }: Props) {
   /* ── Render ────────────────────────────────────────── */
 
   return (
-    <div className="pk-app">
-      <Sidebar />
-
+    <>
       <main className="pk-content">
         <div className="pk-content-inner">
           {/* Header */}
@@ -410,8 +406,6 @@ export function FocusView({ initialSessions, openTasks, userId }: Props) {
           )}
         </div>
       </main>
-
-      <MobileTabs />
-    </div>
+    </>
   );
 }

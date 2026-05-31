@@ -2,8 +2,6 @@
 
 import { useState, type ReactNode } from "react";
 import { IconPlus } from "@/components/icons";
-import { MobileTabs } from "@/components/layout/MobileTabs";
-import { Sidebar } from "@/components/layout/Sidebar";
 import { QuickAdd } from "@/components/ui/QuickAdd";
 import { TaskDetail } from "@/components/ui/TaskDetail";
 import { TaskItem } from "@/components/ui/TaskItem";
@@ -258,9 +256,7 @@ export function TodayView({ initialOverdue, initialToday, dateLabel, userId }: P
   const isEmpty = overdue.length === 0 && today.length === 0;
 
   return (
-    <div className="pk-app">
-      <Sidebar />
-
+    <>
       <main className="pk-content">
         <div className="pk-content-inner">
           <Header dateLabel={dateLabel} count={remaining} />
@@ -317,8 +313,6 @@ export function TodayView({ initialOverdue, initialToday, dateLabel, userId }: P
         <IconPlus size={26} />
       </button>
 
-      <MobileTabs />
-
       <MobileQuickAddSheet
         open={sheetOpen}
         onClose={() => setSheetOpen(false)}
@@ -335,6 +329,6 @@ export function TodayView({ initialOverdue, initialToday, dateLabel, userId }: P
           onDelete={handleTaskDelete}
         />
       )}
-    </div>
+    </>
   );
 }

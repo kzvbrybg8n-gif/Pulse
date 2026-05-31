@@ -2,8 +2,6 @@
 
 import { useState } from "react";
 import { IconPlus } from "@/components/icons";
-import { MobileTabs } from "@/components/layout/MobileTabs";
-import { Sidebar } from "@/components/layout/Sidebar";
 import { QuickAdd } from "@/components/ui/QuickAdd";
 import { TaskDetail } from "@/components/ui/TaskDetail";
 import { TaskItem } from "@/components/ui/TaskItem";
@@ -111,9 +109,7 @@ export function AllView({ initialTasks, userId }: Props) {
   const openCount = tasks.filter((t) => !t.done).length;
 
   return (
-    <div className="pk-app">
-      <Sidebar />
-
+    <>
       <main className="pk-content">
         <div className="pk-content-inner">
           <div className="pk-view-head">
@@ -163,8 +159,6 @@ export function AllView({ initialTasks, userId }: Props) {
         <IconPlus size={26} />
       </button>
 
-      <MobileTabs />
-
       <MobileQuickAddSheet
         open={sheetOpen}
         onClose={() => setSheetOpen(false)}
@@ -181,6 +175,6 @@ export function AllView({ initialTasks, userId }: Props) {
           onDelete={handleTaskDelete}
         />
       )}
-    </div>
+    </>
   );
 }

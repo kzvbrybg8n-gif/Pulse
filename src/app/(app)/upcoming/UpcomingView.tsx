@@ -2,8 +2,6 @@
 
 import { useState } from "react";
 import { IconPlus } from "@/components/icons";
-import { MobileTabs } from "@/components/layout/MobileTabs";
-import { Sidebar } from "@/components/layout/Sidebar";
 import { QuickAdd } from "@/components/ui/QuickAdd";
 import { TaskDetail } from "@/components/ui/TaskDetail";
 import { TaskItem } from "@/components/ui/TaskItem";
@@ -156,9 +154,7 @@ export function UpcomingView({ initialGroups, userId }: Props) {
   const totalOpen = groups.reduce((sum, g) => sum + g.tasks.filter((t) => !t.done).length, 0);
 
   return (
-    <div className="pk-app">
-      <Sidebar />
-
+    <>
       <main className="pk-content">
         <div className="pk-content-inner">
           <div className="pk-view-head">
@@ -213,8 +209,6 @@ export function UpcomingView({ initialGroups, userId }: Props) {
         <IconPlus size={26} />
       </button>
 
-      <MobileTabs />
-
       <MobileQuickAddSheet
         open={sheetOpen}
         onClose={() => setSheetOpen(false)}
@@ -231,6 +225,6 @@ export function UpcomingView({ initialGroups, userId }: Props) {
           onDelete={handleTaskDelete}
         />
       )}
-    </div>
+    </>
   );
 }
