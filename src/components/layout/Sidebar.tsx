@@ -32,14 +32,30 @@ type SidebarData = {
   folders: FolderItem[];
 };
 
+/* ── Cache partagé au niveau module ──────────────────────────
+   La Sidebar est rendue à l'intérieur de chaque vue : elle se démonte et se
+   remonte à chaque navigation. Sans cache, son useEffect relançait deux
+   requêtes Supabase (compteurs + dossiers) à CHAQUE bascule de vue — la
+   cause principale de la lenteur ressentie au changement de vue.
+
+   Ce cache survit aux remontages : on réaffiche instantanément les dernières
+   données connues, puis on revalide en arrière-plan (stale-while-revalidate).
+   ──────────────────────────────────────────────────────────── */
+let sidebarCache: SidebarData | null = null;
+
 /* ── Composant ───────────────────────────────────────────── */
 
 export function Sidebar() {
   const router = useRouter();
   const pathname = usePathname();
   const [supabase] = useState(() => createClient());
-  const [data, setData] = useState<SidebarData | null>(null);
-  const [folderOpen, setFolderOpen] = useState<Record<string, boolean>>({});
+  // Amorçage depuis le cache : affichage immédiat au remontage, sans spinner.
+  const [data, setData] = useState<SidebarData | null>(() => sidebarCache);
+  const [folderOpen, setFolderOpen] = useState<Record<string, boolean>>(() =>
+    sidebarCache
+      ? Object.fromEntries(sidebarCache.folders.map((f) => [f.id, true]))
+      : {},
+  );
   const [filters, setFilters] = useState<FilterSpec[]>([]);
   const [filterPanelOpen, setFilterPanelOpen] = useState(false);
   const [filterPanelSpec, setFilterPanelSpec] = useState<FilterSpec | null>(null);
@@ -106,8 +122,14 @@ export function Sidebar() {
         };
       });
 
-      setData({ todayCount, upcomingCount, allCount, folders });
-      setFolderOpen(Object.fromEntries(folders.map((f) => [f.id, true])));
+      const next = { todayCount, upcomingCount, allCount, folders };
+      sidebarCache = next;
+      setData(next);
+      // Conserve l'état d'ouverture choisi par l'utilisateur ; n'ouvre par
+      // défaut que les dossiers encore inconnus.
+      setFolderOpen((prev) =>
+        Object.fromEntries(folders.map((f) => [f.id, prev[f.id] ?? true])),
+      );
 
       // 3. Filtres personnalisés (localStorage)
       setFilters(loadFilters());
