@@ -210,7 +210,6 @@ export function HabitsView({ initialHabits, userId }: Props) {
                     habit={habit}
                     onToggle={toggleCheckin}
                     onEdit={setModalTarget}
-                    onDelete={handleDelete}
                   />
                 ))}
               </div>

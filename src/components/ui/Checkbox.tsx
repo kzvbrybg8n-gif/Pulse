@@ -7,9 +7,10 @@ type Props = {
   done: boolean;
   onToggle?: () => void;
   size?: number;
+  label?: string;
 };
 
-export function Checkbox({ done, onToggle, size = 20 }: Props) {
+export function Checkbox({ done, onToggle, size = 20, label = "Terminer" }: Props) {
   return (
     <button
       type="button"
@@ -20,7 +21,7 @@ export function Checkbox({ done, onToggle, size = 20 }: Props) {
       }}
       style={{ width: size, height: size }}
       aria-pressed={done}
-      aria-label="Terminer"
+      aria-label={label}
     >
       {done && <IconCheck size={size * 0.6} />}
     </button>

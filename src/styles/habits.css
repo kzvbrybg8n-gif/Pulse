@@ -1,75 +1,22 @@
 /* ── Module Habitudes ─────────────────────────────────────── */
 
-.hb-list {
-  display: flex;
-  flex-direction: column;
-}
+/* La ligne d'habitude réutilise la grammaire .pk-task (coche à gauche,
+   nom+méta au centre, actions+série à droite). Voir HabitRow.tsx. */
 
-.hb-row {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  padding: 12px 16px;
-  border-bottom: 1px solid var(--line-1);
-  position: relative;
-}
-
-.hb-row:last-child {
-  border-bottom: none;
-}
-
-/* Name + frequency */
-.hb-info {
-  flex: 1;
-  min-width: 0;
-}
-
-.hb-name {
-  font-family: var(--font-sans);
-  font-size: 14px;
-  font-weight: 500;
-  color: var(--fg);
-  line-height: 1.3;
-}
-
+/* Fréquence sous le nom — affichée dans .pk-task-meta */
 .hb-freq {
   font-family: var(--font-sans);
   font-size: 12px;
   color: var(--fg-muted);
-  margin-top: 2px;
 }
 
-/* Mini-calendar (7 dots) */
-.hb-dots {
-  flex: 0 0 auto;
-  display: flex;
-  align-items: center;
-  gap: 6px;
-}
-
-.hb-dot {
-  width: 9px;
-  height: 9px;
-  border-radius: 50%;
-  background: var(--line-2);
-  flex-shrink: 0;
-}
-
-.hb-dot.done {
-  background: var(--green-1);
-}
-
-.hb-dot.today {
-  box-shadow: 0 0 0 2px var(--bg-raised), 0 0 0 3.5px var(--green-1);
-}
-
-/* Streak badge */
+/* Série (badge discret à droite, comme le drapeau de priorité d'une tâche) */
 .hb-streak {
   flex: 0 0 auto;
   font-family: var(--font-mono);
   font-size: 12px;
   color: var(--fg-faint);
-  min-width: 36px;
+  min-width: 32px;
   text-align: right;
   white-space: nowrap;
 }
@@ -77,131 +24,6 @@
 .hb-streak.active {
   color: var(--green-1);
   font-weight: 600;
-}
-
-/* Check button */
-.hb-check-btn {
-  flex: 0 0 32px;
-  width: 32px;
-  height: 32px;
-  border-radius: 50%;
-  border: 1.75px solid var(--border-strong);
-  background: transparent;
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  transition: border-color 0.15s, background 0.15s;
-  color: transparent;
-}
-
-.hb-check-btn:hover {
-  border-color: var(--green-1);
-  background: var(--green-soft);
-  color: var(--green-1);
-}
-
-.hb-check-btn.done {
-  border-color: var(--green-1);
-  background: var(--green-1);
-  color: var(--on-accent);
-}
-
-/* Context menu button */
-.hb-more-btn {
-  flex: 0 0 24px;
-  width: 24px;
-  height: 24px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  border-radius: var(--radius-sm);
-  background: transparent;
-  border: none;
-  cursor: pointer;
-  color: var(--fg-faint);
-  opacity: 0;
-  transition: opacity 0.15s, background 0.1s;
-}
-
-.hb-row:hover .hb-more-btn,
-.hb-more-btn:focus-visible {
-  opacity: 1;
-}
-
-.hb-more-btn:hover {
-  background: var(--bg-hover);
-  color: var(--fg-muted);
-}
-
-/* Context menu dropdown */
-.hb-menu {
-  position: absolute;
-  right: 0;
-  top: calc(100% - 4px);
-  z-index: 50;
-  background: var(--bg-raised);
-  border: 1px solid var(--border);
-  border-radius: var(--radius-md);
-  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.08);
-  overflow: hidden;
-  min-width: 120px;
-}
-
-.hb-menu-item {
-  display: block;
-  width: 100%;
-  padding: 8px 14px;
-  text-align: left;
-  background: none;
-  border: none;
-  cursor: pointer;
-  font-family: var(--font-sans);
-  font-size: 13px;
-  color: var(--fg);
-  transition: background 0.1s;
-}
-
-.hb-menu-item:hover {
-  background: var(--bg-hover);
-}
-
-.hb-menu-item.danger {
-  color: var(--clay-1);
-}
-
-/* Inline delete confirmation */
-.hb-del-confirm {
-  display: flex;
-  align-items: center;
-  gap: var(--space-2);
-  padding: var(--space-2) 14px;
-}
-
-.hb-del-label {
-  font-family: var(--font-sans);
-  font-size: 12px;
-  color: var(--fg-muted);
-}
-
-.hb-del-yes {
-  font-size: 12px;
-  padding: 3px 10px;
-  border-radius: var(--radius-sm);
-  border: none;
-  background: var(--clay-1);
-  color: white;
-  cursor: pointer;
-}
-
-.hb-del-no {
-  font-size: 12px;
-  padding: 3px 10px;
-  border-radius: var(--radius-sm);
-  border: 1px solid var(--border);
-  background: transparent;
-  color: var(--fg-muted);
-  cursor: pointer;
 }
 
 /* Modal form fields */
@@ -378,31 +200,3 @@
   padding: 2px 8px;
 }
 
-/* Mobile overrides */
-@media (max-width: 768px) {
-  .hb-check-btn {
-    width: 44px;
-    height: 44px;
-    flex: 0 0 44px;
-  }
-
-  /* Cible tactile ≥ 44px pour le menu d'options */
-  .hb-more-btn {
-    opacity: 1;
-    width: 44px;
-    height: 44px;
-    flex: 0 0 44px;
-  }
-
-  /* Compacter la frise plutôt que la masquer : l'historique reste lisible */
-  .hb-dots {
-    gap: 4px;
-  }
-
-  .hb-dot {
-    width: 6px;
-    height: 6px;
-  }
-
-  /* Le streak reste visible (info centrale du tracker) */
-}

@@ -1,7 +1,7 @@
 "use client";
 
-import { useRef, useState } from "react";
-import { IconCheck, IconMore } from "@/components/icons";
+import { IconPencil } from "@/components/icons";
+import { Checkbox } from "@/components/ui/Checkbox";
 import type { Habit } from "@/lib/types";
 
 const PERIOD_LABELS: Record<string, string> = {
@@ -14,130 +14,47 @@ type Props = {
   habit: Habit;
   onToggle: (id: string) => void;
   onEdit: (habit: Habit) => void;
-  onDelete: (id: string) => void;
 };
 
-export function HabitRow({ habit, onToggle, onEdit, onDelete }: Props) {
-  const [menuOpen, setMenuOpen] = useState(false);
-  const [deleteConfirm, setDeleteConfirm] = useState(false);
-  const menuRef = useRef<HTMLDivElement>(null);
-
-  function closeMenu() {
-    setMenuOpen(false);
-    setDeleteConfirm(false);
-  }
-
+export function HabitRow({ habit, onToggle, onEdit }: Props) {
   const freqLabel =
     habit.targetPerPeriod > 1
       ? `${habit.targetPerPeriod}× / ${PERIOD_LABELS[habit.period]?.toLowerCase()}`
       : PERIOD_LABELS[habit.period] ?? habit.period;
 
   return (
-    <div className="hb-row">
-      {/* Name + frequency */}
-      <div className="hb-info">
-        <div className="hb-name">{habit.name}</div>
-        <div className="hb-freq">{freqLabel}</div>
+    <div className="pk-task" tabIndex={0}>
+      {/* Check-in du jour — même grammaire qu'une tâche (coche à gauche) */}
+      <Checkbox
+        done={habit.checkedToday}
+        onToggle={() => onToggle(habit.id)}
+        label={habit.checkedToday ? "Décocher pour aujourd'hui" : "Cocher pour aujourd'hui"}
+      />
+
+      <div className="pk-task-mid">
+        <div className="pk-task-title">{habit.name}</div>
+        <div className="pk-task-meta">
+          <span className="hb-freq">{freqLabel}</span>
+        </div>
       </div>
 
-      {/* Mini-calendar: 7 dots */}
-      <div
-        className="hb-dots"
-        role="img"
-        aria-label={`${habit.weekDots.filter(Boolean).length} jours sur 7 cette semaine`}
-      >
-        {habit.weekDots.map((done, i) => (
-          <span
-            key={i}
-            className={
-              "hb-dot" + (done ? " done" : "") + (i === 6 ? " today" : "")
-            }
-          />
-        ))}
-      </div>
-
-      {/* Streak */}
-      <span className={"hb-streak" + (habit.streak > 0 ? " active" : "")}>
-        {habit.streak > 0 ? `${habit.streak} j` : "—"}
-      </span>
-
-      {/* Check-in button */}
-      <button
-        type="button"
-        className={"hb-check-btn" + (habit.checkedToday ? " done" : "")}
-        onClick={() => onToggle(habit.id)}
-        aria-label={habit.checkedToday ? "Décocher" : "Cocher pour aujourd'hui"}
-      >
-        <IconCheck size={14} />
-      </button>
-
-      {/* Context menu */}
-      <div ref={menuRef} style={{ position: "relative" }}>
-        <button
-          type="button"
-          className="hb-more-btn"
-          onClick={() => {
-            setMenuOpen((o) => !o);
-            setDeleteConfirm(false);
-          }}
-          aria-label="Options"
+      <div className="pk-task-right">
+        <div className="pk-task-actions">
+          <button
+            type="button"
+            className="pk-icon-btn sm"
+            aria-label="Modifier"
+            onClick={() => onEdit(habit)}
+          >
+            <IconPencil size={16} />
+          </button>
+        </div>
+        <span
+          className={"hb-streak" + (habit.streak > 0 ? " active" : "")}
+          aria-label={habit.streak > 0 ? `Série de ${habit.streak} jours` : "Aucune série"}
         >
-          <IconMore size={16} />
-        </button>
-
-        {menuOpen && (
-          <>
-            <div
-              style={{ position: "fixed", inset: 0, zIndex: 49 }}
-              onClick={closeMenu}
-              role="presentation"
-            />
-            <div className="hb-menu">
-              {deleteConfirm ? (
-                <div className="hb-del-confirm">
-                  <span className="hb-del-label">Supprimer ?</span>
-                  <button
-                    type="button"
-                    className="hb-del-yes"
-                    onClick={() => {
-                      onDelete(habit.id);
-                      closeMenu();
-                    }}
-                  >
-                    Oui
-                  </button>
-                  <button
-                    type="button"
-                    className="hb-del-no"
-                    onClick={() => setDeleteConfirm(false)}
-                  >
-                    Non
-                  </button>
-                </div>
-              ) : (
-                <>
-                  <button
-                    type="button"
-                    className="hb-menu-item"
-                    onClick={() => {
-                      onEdit(habit);
-                      closeMenu();
-                    }}
-                  >
-                    Modifier
-                  </button>
-                  <button
-                    type="button"
-                    className="hb-menu-item danger"
-                    onClick={() => setDeleteConfirm(true)}
-                  >
-                    Supprimer
-                  </button>
-                </>
-              )}
-            </div>
-          </>
-        )}
+          {habit.streak > 0 ? `${habit.streak} j` : "—"}
+        </span>
       </div>
     </div>
   );
