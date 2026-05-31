@@ -80,15 +80,9 @@ export function HabitModal({ initialHabit, userId, onSave, onDelete, onClose }: 
     setSaving(false);
   }
 
-  async function handleDelete() {
+  function handleDelete() {
     if (!initialHabit) return;
-    setSaving(true);
-    const { error } = await supabase.from("habits").delete().eq("id", initialHabit.id);
-    if (error) {
-      setErrorMsg(error.message);
-      setSaving(false);
-      return;
-    }
+    // La suppression en base (+ rollback) est centralisée dans HabitsView.handleDelete
     onDelete(initialHabit.id);
   }
 

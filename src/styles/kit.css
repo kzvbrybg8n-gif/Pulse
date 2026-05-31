@@ -58,6 +58,7 @@ button { font-family: inherit; cursor: pointer; }
 .pk-qa-input::placeholder { color: var(--fg-faint); }
 .pk-qa-input:focus { outline: none; }
 .pk-qa-go { background: var(--accent); color: var(--on-accent); border: none;
+  display: inline-flex; align-items: center; gap: 6px;
   font-size: 13px; font-weight: 600; padding: 8px 14px; border-radius: var(--radius-sm); flex: none; }
 .pk-qa-go:hover { background: var(--accent-hover); }
 .pk-qa-detected { display: flex; gap: 8px; align-items: center; flex-wrap: wrap;

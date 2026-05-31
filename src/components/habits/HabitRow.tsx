@@ -41,7 +41,11 @@ export function HabitRow({ habit, onToggle, onEdit, onDelete }: Props) {
       </div>
 
       {/* Mini-calendar: 7 dots */}
-      <div className="hb-dots" aria-hidden>
+      <div
+        className="hb-dots"
+        role="img"
+        aria-label={`${habit.weekDots.filter(Boolean).length} jours sur 7 cette semaine`}
+      >
         {habit.weekDots.map((done, i) => (
           <span
             key={i}
@@ -54,7 +58,7 @@ export function HabitRow({ habit, onToggle, onEdit, onDelete }: Props) {
 
       {/* Streak */}
       <span className={"hb-streak" + (habit.streak > 0 ? " active" : "")}>
-        {habit.streak > 0 ? `${habit.streak}🔥` : "—"}
+        {habit.streak > 0 ? `${habit.streak} j` : "—"}
       </span>
 
       {/* Check-in button */}
@@ -90,7 +94,7 @@ export function HabitRow({ habit, onToggle, onEdit, onDelete }: Props) {
             />
             <div className="hb-menu">
               {deleteConfirm ? (
-                <div className="hb-del-confirm" style={{ padding: "8px 14px" }}>
+                <div className="hb-del-confirm">
                   <span className="hb-del-label">Supprimer ?</span>
                   <button
                     type="button"

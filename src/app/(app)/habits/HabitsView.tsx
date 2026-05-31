@@ -40,7 +40,15 @@ export function HabitsView({ initialHabits, userId }: Props) {
   const [supabase] = useState(() => createClient());
   const [habits, setHabits] = useState<Habit[]>(initialHabits);
   const [modalTarget, setModalTarget] = useState<ModalTarget>(null);
+  const [errorMsg, setErrorMsg] = useState<string | null>(null);
   const router = useRouter();
+
+  // Efface automatiquement le message d'erreur après quelques secondes
+  useEffect(() => {
+    if (!errorMsg) return;
+    const t = setTimeout(() => setErrorMsg(null), 4000);
+    return () => clearTimeout(t);
+  }, [errorMsg]);
 
   // Synchro Realtime — changements depuis un autre appareil ou onglet
   useEffect(() => {
@@ -118,6 +126,7 @@ export function HabitsView({ initialHabits, userId }: Props) {
 
     if (err) {
       setHabits((hs) => hs.map((h) => (h.id === id ? habit : h)));
+      setErrorMsg("Échec de l'enregistrement. Réessayez.");
     }
   }
 
@@ -132,8 +141,16 @@ export function HabitsView({ initialHabits, userId }: Props) {
   }
 
   async function handleDelete(id: string) {
+    const prev = habits;
     setHabits((hs) => hs.filter((h) => h.id !== id));
     setModalTarget(null);
+
+    const { error } = await supabase.from("habits").delete().eq("id", id);
+    if (error) {
+      // Échec de la suppression → restaurer l'état précédent
+      setHabits(prev);
+      setErrorMsg("Échec de la suppression. Réessayez.");
+    }
   }
 
   const checkedCount = habits.filter((h) => h.checkedToday).length;
@@ -149,7 +166,7 @@ export function HabitsView({ initialHabits, userId }: Props) {
             <div>
               <h1 className="pk-view-title">Habitudes</h1>
             </div>
-            <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
+            <div className="hb-head-actions">
               {total > 0 && (
                 <span className="hb-count-badge">
                   {checkedCount} / {total} aujourd&apos;hui
@@ -167,14 +184,17 @@ export function HabitsView({ initialHabits, userId }: Props) {
             </div>
           </div>
 
+          <div className="hb-error" role="status" aria-live="polite">
+            {errorMsg}
+          </div>
+
           {habits.length === 0 ? (
             <div className="pk-empty">
               <div className="pk-empty-title">Aucune habitude</div>
               <div className="pk-empty-sub">Crée ta première habitude pour commencer à suivre tes séries.</div>
               <button
                 type="button"
-                className="hb-add-btn"
-                style={{ marginTop: 20, width: "auto" }}
+                className="hb-add-btn hb-add-btn--inline"
                 onClick={() => setModalTarget("new")}
               >
                 <IconPlus size={16} />
