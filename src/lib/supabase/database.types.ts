@@ -367,6 +367,57 @@ export type Database = {
           },
         ]
       }
+      user_preferences: {
+        Row: {
+          id: string
+          user_id: string
+          reminder_default_minutes: number | null
+          tasks_sort_order: string
+          tasks_show_completed: boolean
+          focus_minutes: number
+          break_minutes: number
+          long_break_minutes: number
+          long_break_interval: number
+          sound_enabled: boolean
+          notifications_enabled: boolean
+          reminders_enabled: boolean
+          created_at: string
+          updated_at: string
+        }
+        Insert: {
+          id?: string
+          user_id: string
+          reminder_default_minutes?: number | null
+          tasks_sort_order?: string
+          tasks_show_completed?: boolean
+          focus_minutes?: number
+          break_minutes?: number
+          long_break_minutes?: number
+          long_break_interval?: number
+          sound_enabled?: boolean
+          notifications_enabled?: boolean
+          reminders_enabled?: boolean
+          created_at?: string
+          updated_at?: string
+        }
+        Update: {
+          id?: string
+          user_id?: string
+          reminder_default_minutes?: number | null
+          tasks_sort_order?: string
+          tasks_show_completed?: boolean
+          focus_minutes?: number
+          break_minutes?: number
+          long_break_minutes?: number
+          long_break_interval?: number
+          sound_enabled?: boolean
+          notifications_enabled?: boolean
+          reminders_enabled?: boolean
+          created_at?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       tasks: {
         Row: {
           created_at: string

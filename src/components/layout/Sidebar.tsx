@@ -239,7 +239,11 @@ export function Sidebar() {
 
       <div className="pk-side-foot">
         {FOOT_NAV.map((v) => {
-          const href = v.id === "habits" ? "/habits" : v.id === "focus" ? "/focus" : null;
+          const href =
+            v.id === "habits" ? "/habits"
+            : v.id === "focus" ? "/focus"
+            : v.id === "settings" ? "/settings"
+            : null;
           const isActive = href ? pathname.startsWith(href) : false;
           if (href) {
             return (
