@@ -6,6 +6,7 @@ import { IconPlus } from "@/components/icons";
 import { HabitModal } from "@/components/habits/HabitModal";
 import { HabitRow } from "@/components/habits/HabitRow";
 import { HabitWeekStrip } from "@/components/habits/HabitWeekStrip";
+import { HabitDetailPanel } from "@/components/habits/HabitDetailPanel";
 import { createClient } from "@/lib/supabase/client";
 import { localDateStr } from "@/lib/habits/streak";
 import type { Habit } from "@/lib/types";
@@ -39,6 +40,7 @@ export function HabitsView({ initialHabits, userId }: Props) {
   const [supabase] = useState(() => createClient());
   const [habits, setHabits] = useState<Habit[]>(initialHabits);
   const [modalTarget, setModalTarget] = useState<ModalTarget>(null);
+  const [detailId, setDetailId] = useState<string | null>(null);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
   const router = useRouter();
 
@@ -154,6 +156,7 @@ export function HabitsView({ initialHabits, userId }: Props) {
 
   const checkedCount = habits.filter((h) => h.checkedToday).length;
   const total = habits.length;
+  const detailHabit = detailId ? habits.find((h) => h.id === detailId) ?? null : null;
 
   return (
     <>
@@ -207,8 +210,10 @@ export function HabitsView({ initialHabits, userId }: Props) {
                   <HabitRow
                     key={habit.id}
                     habit={habit}
+                    selected={habit.id === detailId}
                     onToggle={toggleCheckin}
                     onEdit={setModalTarget}
+                    onOpen={(h) => setDetailId(h.id)}
                   />
                 ))}
               </div>
@@ -224,6 +229,14 @@ export function HabitsView({ initialHabits, userId }: Props) {
           )}
         </div>
       </main>
+
+      {detailHabit && modalTarget === null && (
+        <HabitDetailPanel
+          habit={detailHabit}
+          onClose={() => setDetailId(null)}
+          onEdit={setModalTarget}
+        />
+      )}
 
       {modalTarget !== null && (
         <HabitModal

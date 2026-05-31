@@ -12,18 +12,20 @@ const PERIOD_LABELS: Record<string, string> = {
 
 type Props = {
   habit: Habit;
+  selected?: boolean;
   onToggle: (id: string) => void;
   onEdit: (habit: Habit) => void;
+  onOpen: (habit: Habit) => void;
 };
 
-export function HabitRow({ habit, onToggle, onEdit }: Props) {
+export function HabitRow({ habit, selected, onToggle, onEdit, onOpen }: Props) {
   const freqLabel =
     habit.targetPerPeriod > 1
       ? `${habit.targetPerPeriod}× / ${PERIOD_LABELS[habit.period]?.toLowerCase()}`
       : PERIOD_LABELS[habit.period] ?? habit.period;
 
   return (
-    <div className="pk-task" tabIndex={0}>
+    <div className={"pk-task" + (selected ? " is-selected" : "")} tabIndex={0}>
       {/* Check-in du jour — même grammaire qu'une tâche (coche à gauche) */}
       <Checkbox
         done={habit.checkedToday}
@@ -31,12 +33,17 @@ export function HabitRow({ habit, onToggle, onEdit }: Props) {
         label={habit.checkedToday ? "Décocher pour aujourd'hui" : "Cocher pour aujourd'hui"}
       />
 
-      <div className="pk-task-mid">
+      <button
+        type="button"
+        className="pk-task-mid hb-open"
+        onClick={() => onOpen(habit)}
+        aria-label={`Voir les statistiques de ${habit.name}`}
+      >
         <div className="pk-task-title">{habit.name}</div>
         <div className="pk-task-meta">
           <span className="hb-freq">{freqLabel}</span>
         </div>
-      </div>
+      </button>
 
       <div className="pk-task-right">
         <div className="pk-task-actions">
