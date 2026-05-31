@@ -1,5 +1,6 @@
 "use client";
 
+import { useRouter } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
 import {
   IconAlignLeft,
@@ -7,10 +8,10 @@ import {
   IconCalendar,
   IconCornerDownRight,
   IconFolder,
-  IconMore,
   IconPlus,
   IconRepeat,
   IconTag,
+  IconTimer,
   IconTrash,
   IconX,
 } from "@/components/icons";
@@ -78,6 +79,7 @@ type Props = {
 };
 
 export function TaskDetail({ taskId, userId, onClose, onUpdate, onDelete }: Props) {
+  const router = useRouter();
   const [supabase] = useState(() => createClient());
   const [detail, setDetail] = useState<DetailData | null>(null);
   const [loading, setLoading] = useState(false);
@@ -389,8 +391,14 @@ export function TaskDetail({ taskId, userId, onClose, onUpdate, onDelete }: Prop
             }}
           />
           <div className="pd-head-actions">
-            <button type="button" className="pk-icon-btn sm" aria-label="Plus d'options">
-              <IconMore size={16} />
+            <button
+              type="button"
+              className="pk-icon-btn sm"
+              aria-label="Démarrer une session focus"
+              title="Démarrer une session focus"
+              onClick={() => router.push(`/focus?task=${detail.id}`)}
+            >
+              <IconTimer size={16} />
             </button>
             <button type="button" className="pk-icon-btn sm" aria-label="Fermer" onClick={onClose}>
               <IconX size={16} />

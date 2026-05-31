@@ -12,7 +12,12 @@ type SessionRow = {
   tasks: { title: string } | null;
 };
 
-export default async function FocusPage() {
+export default async function FocusPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ task?: string }>;
+}) {
+  const { task: initialTaskId } = await searchParams;
   const supabase = await createClient();
 
   const {
@@ -47,11 +52,19 @@ export default async function FocusPage() {
 
   const openTasks = (tasksRaw ?? []) as { id: string; title: string }[];
 
+  // Si une tâche est passée en paramètre mais qu'elle n'est plus "open"
+  // (rare), on récupère quand même son titre pour la présélection.
+  let preselectTaskId: string | null = initialTaskId ?? null;
+  if (preselectTaskId && !openTasks.some((t) => t.id === preselectTaskId)) {
+    preselectTaskId = null;
+  }
+
   return (
     <FocusView
       initialSessions={sessions}
       openTasks={openTasks}
       userId={user?.id ?? ""}
+      initialTaskId={preselectTaskId}
     />
   );
 }

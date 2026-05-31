@@ -5,6 +5,8 @@ export const DEFAULT_SETTINGS: PomodoroSettings = {
   breakMinutes: 5,
   longBreakMinutes: 15,
   longBreakInterval: 4,
+  soundEnabled: true,
+  autoAdvance: false,
 };
 
 const STORAGE_KEY = "pulse:pomodoro-settings";

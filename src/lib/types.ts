@@ -70,6 +70,8 @@ export type PomodoroSettings = {
   breakMinutes: number;
   longBreakMinutes: number;
   longBreakInterval: number;
+  soundEnabled: boolean;
+  autoAdvance: boolean;
 };
 
 export type HabitPeriod = "day" | "week" | "month";
