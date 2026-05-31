@@ -1,27 +1,19 @@
-import type { PomodoroSettings } from "@/lib/types";
+/**
+ * Réglage local-only de la vue Focus : « enchaîner automatiquement ».
+ *
+ * Les durées (focus/pause/longue pause/cycle) et le son de fin de phase sont
+ * canoniques côté serveur (table `user_preferences`, édités dans Réglages) et
+ * passés à la vue Focus en props. Seul `autoAdvance` vit en local, car c'est un
+ * comportement de session propre à cette page.
+ */
 
-export const DEFAULT_SETTINGS: PomodoroSettings = {
-  focusMinutes: 25,
-  breakMinutes: 5,
-  longBreakMinutes: 15,
-  longBreakInterval: 4,
-  soundEnabled: true,
-  autoAdvance: false,
-};
+const STORAGE_KEY = "pulse:pomodoro-auto-advance";
 
-const STORAGE_KEY = "pulse:pomodoro-settings";
-
-export function loadSettings(): PomodoroSettings {
-  if (typeof window === "undefined") return DEFAULT_SETTINGS;
-  try {
-    const raw = localStorage.getItem(STORAGE_KEY);
-    if (!raw) return DEFAULT_SETTINGS;
-    return { ...DEFAULT_SETTINGS, ...(JSON.parse(raw) as Partial<PomodoroSettings>) };
-  } catch {
-    return DEFAULT_SETTINGS;
-  }
+export function loadAutoAdvance(): boolean {
+  if (typeof window === "undefined") return false;
+  return localStorage.getItem(STORAGE_KEY) === "1";
 }
 
-export function saveSettings(s: PomodoroSettings): void {
-  localStorage.setItem(STORAGE_KEY, JSON.stringify(s));
+export function saveAutoAdvance(value: boolean): void {
+  localStorage.setItem(STORAGE_KEY, value ? "1" : "0");
 }

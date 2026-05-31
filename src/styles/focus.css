@@ -100,6 +100,7 @@
   align-items: center;
   gap: 12px;
   justify-content: center;
+  margin-top: 20px;
 }
 
 .fc-btn {
@@ -121,6 +122,15 @@
   color: var(--ink-1);
 }
 
+/* Focus clavier visible sur tous les contrôles ronds/boutons de la vue */
+.fc-btn:focus-visible,
+.fc-settings-toggle:focus-visible,
+.fc-task-finish:focus-visible,
+.fc-finished-close:focus-visible {
+  outline: 2px solid var(--green-1);
+  outline-offset: 2px;
+}
+
 .fc-btn.primary {
   width: 56px;
   height: 56px;
@@ -138,8 +148,15 @@
   text-align: center;
   margin-top: 12px;
   font-size: 12.5px;
-  color: var(--fg-subtle);
+  color: var(--fg-muted);
   letter-spacing: 0.01em;
+}
+
+.fc-action-error {
+  text-align: center;
+  margin-top: 8px;
+  font-size: 12.5px;
+  color: var(--signal);
 }
 
 /* ── Task selector ───────────────────────────────────── */
@@ -216,7 +233,7 @@
   align-items: center;
   gap: 5px;
   flex-shrink: 0;
-  padding: 6px 12px;
+  padding: 9px 14px;
   border: 1px solid var(--green-1);
   border-radius: var(--radius-pill);
   background: var(--green-soft);
@@ -258,8 +275,8 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 22px;
-  height: 22px;
+  width: 32px;
+  height: 32px;
   border: none;
   border-radius: 50%;
   background: transparent;
@@ -268,7 +285,7 @@
 }
 
 .fc-finished-close:hover {
-  background: rgba(0, 0, 0, 0.06);
+  background: var(--bg-hover);
 }
 
 /* ── Settings ────────────────────────────────────────── */
@@ -277,8 +294,8 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 32px;
-  height: 32px;
+  width: 40px;
+  height: 40px;
   border: 1px solid var(--line-1);
   border-radius: var(--radius-sm);
   background: transparent;
@@ -299,57 +316,48 @@
   border-radius: var(--radius-md);
   padding: 16px 20px;
   margin-top: 20px;
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 14px 20px;
-}
-
-.fc-setting-row {
-  display: flex;
-  flex-direction: column;
-  gap: 5px;
-}
-
-.fc-setting-label {
-  font-size: 11px;
-  font-weight: 600;
-  letter-spacing: 0.06em;
-  text-transform: uppercase;
-  color: var(--fg-subtle);
-}
-
-.fc-setting-input {
-  width: 100%;
-  padding: 6px 8px;
-  border: 1px solid var(--line-1);
-  border-radius: var(--radius-xs);
-  background: var(--bg);
-  color: var(--fg);
-  font-family: var(--font-mono);
-  font-size: 15px;
-  outline: none;
-  transition: border-color 0.15s;
-}
-
-.fc-setting-input:focus {
-  border-color: var(--green-1);
+  max-width: 360px;
+  margin-left: auto;
+  margin-right: auto;
 }
 
 .fc-setting-toggle {
-  grid-column: 1 / -1;
   display: flex;
-  align-items: center;
-  gap: 9px;
-  font-size: 13px;
-  color: var(--fg);
-  cursor: pointer;
+  align-items: flex-start;
+  gap: 12px;
 }
 
-.fc-setting-toggle input {
-  width: 16px;
-  height: 16px;
-  accent-color: var(--green-1);
-  cursor: pointer;
+.fc-setting-toggle-text {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.fc-setting-toggle-title {
+  font-size: 14px;
+  color: var(--fg);
+}
+
+.fc-setting-toggle-desc {
+  font-size: 12.5px;
+  line-height: 1.45;
+  color: var(--fg-muted);
+}
+
+.fc-settings-link {
+  margin-top: 14px;
+  font-size: 12.5px;
+  color: var(--fg-muted);
+}
+
+.fc-settings-link a {
+  color: var(--green-3);
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+
+.fc-settings-link a:hover {
+  color: var(--green-2);
 }
 
 /* ── History ─────────────────────────────────────────── */
@@ -436,7 +444,18 @@
   }
 
   .fc-settings-panel {
-    grid-template-columns: 1fr 1fr;
     padding: 14px;
+  }
+}
+
+/* Récap : passage en colonne sur écrans étroits pour éviter l'écrasement */
+@media (max-width: 380px) {
+  .fc-task-recap {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .fc-task-finish {
+    justify-content: center;
   }
 }

@@ -4,7 +4,6 @@ import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { IconLogOut, IconX } from "@/components/icons";
 import { createClient } from "@/lib/supabase/client";
-import { loadSettings, saveSettings } from "@/lib/pomodoro/settings";
 
 /* ── Types ─────────────────────────────────────────────── */
 
@@ -168,15 +167,7 @@ export function SettingsView({ email, userId, initialPrefs }: Props) {
     try {
       await upsertPrefs(validated);
       setPrefs((p) => ({ ...p, ...validated }));
-      // Sync localStorage pour la vue Focus
-      saveSettings({
-        ...loadSettings(), // préserve autoAdvance, géré dans la vue Focus
-        focusMinutes: validated.focus_minutes,
-        breakMinutes: validated.break_minutes,
-        longBreakMinutes: validated.long_break_minutes,
-        longBreakInterval: validated.long_break_interval,
-        soundEnabled: validated.sound_enabled,
-      });
+      // La vue Focus lit ces prefs directement côté serveur : pas de sync locale.
     } catch {
       setSaveError("Erreur lors de la sauvegarde des réglages Pomodoro.");
     } finally {

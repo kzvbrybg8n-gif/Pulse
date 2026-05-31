@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useCallback, useEffect, useRef, useState } from "react";
 import {
   IconCheck,
@@ -9,9 +10,11 @@ import {
   IconSkip,
   IconX,
 } from "@/components/icons";
+import { Checkbox } from "@/components/ui/Checkbox";
 import { createClient } from "@/lib/supabase/client";
-import { loadSettings, saveSettings } from "@/lib/pomodoro/settings";
+import { loadAutoAdvance, saveAutoAdvance } from "@/lib/pomodoro/settings";
 import type {
+  FocusServerSettings,
   PomodoroMode,
   PomodoroSession,
   PomodoroSettings,
@@ -92,6 +95,7 @@ type Props = {
   openTasks: OpenTask[];
   userId: string;
   initialTaskId: string | null;
+  serverSettings: FocusServerSettings;
 };
 
 type FinishedRecap = { title: string; seconds: number };
@@ -103,16 +107,21 @@ export function FocusView({
   openTasks,
   userId,
   initialTaskId,
+  serverSettings,
 }: Props) {
   const [supabase] = useState(() => createClient());
 
-  // Timer state
-  const [settings, setSettings] = useState<PomodoroSettings>(loadSettings);
+  // Timer state.
+  // Durées + son viennent du serveur (canoniques) ; autoAdvance est local.
+  const [settings, setSettings] = useState<PomodoroSettings>(() => ({
+    ...serverSettings,
+    autoAdvance: loadAutoAdvance(),
+  }));
   const [phase, setPhase] = useState<TimerPhase>("idle");
   const [mode, setMode] = useState<PomodoroMode>("focus");
   const [isLongBreak, setIsLongBreak] = useState(false);
   const [pomodorosDone, setPomodorosDone] = useState(0);
-  const [secondsLeft, setSecondsLeft] = useState(() => loadSettings().focusMinutes * 60);
+  const [secondsLeft, setSecondsLeft] = useState(() => serverSettings.focusMinutes * 60);
   const [selectedTaskId, setSelectedTaskId] = useState<string | null>(initialTaskId);
 
   // Data state
@@ -123,6 +132,7 @@ export function FocusView({
   // Temps total cumulé en focus sur la tâche sélectionnée (toutes sessions)
   const [taskFocusSeconds, setTaskFocusSeconds] = useState(0);
   const [finishedRecap, setFinishedRecap] = useState<FinishedRecap | null>(null);
+  const [actionError, setActionError] = useState<string | null>(null);
 
   // Ref to track when each session started (for started_at in DB)
   const startedAtRef = useRef<Date | null>(null);
@@ -187,7 +197,9 @@ export function FocusView({
       ended_at: now.toISOString(),
     });
 
-    if (!error) {
+    if (error) {
+      setActionError("La session n'a pas pu être enregistrée.");
+    } else {
       const newSess: PomodoroSession = {
         id: sessionId,
         mode,
@@ -287,7 +299,15 @@ export function FocusView({
   async function handleFinishTask() {
     if (!selectedTaskId) return;
     const task = taskList.find((t) => t.id === selectedTaskId);
-    await supabase.from("tasks").update({ status: "done" }).eq("id", selectedTaskId);
+    const { error } = await supabase
+      .from("tasks")
+      .update({ status: "done" })
+      .eq("id", selectedTaskId);
+    if (error) {
+      setActionError("La tâche n'a pas pu être marquée comme terminée.");
+      return;
+    }
+    setActionError(null);
     setFinishedRecap({
       title: task?.title ?? "Tâche",
       seconds: taskFocusSeconds,
@@ -296,24 +316,10 @@ export function FocusView({
     setSelectedTaskId(null);
   }
 
-  function handleSettingsChange(key: keyof PomodoroSettings, raw: string) {
-    const val = Math.max(1, parseInt(raw, 10) || 1);
-    const next = { ...settings, [key]: val };
-    saveSettings(next);
-    setSettings(next);
-    if (phase === "idle") {
-      if (mode === "focus") setSecondsLeft(next.focusMinutes * 60);
-      else {
-        const secs = (isLongBreak ? next.longBreakMinutes : next.breakMinutes) * 60;
-        setSecondsLeft(secs);
-      }
-    }
-  }
-
-  function handleToggle(key: "soundEnabled" | "autoAdvance") {
-    const next = { ...settings, [key]: !settings[key] };
-    saveSettings(next);
-    setSettings(next);
+  function toggleAutoAdvance() {
+    const next = !settings.autoAdvance;
+    saveAutoAdvance(next);
+    setSettings((s) => ({ ...s, autoAdvance: next }));
   }
 
   /* ── Derived ───────────────────────────────────────── */
@@ -397,10 +403,15 @@ export function FocusView({
               {phaseLabel}
             </span>
 
-            <div className="fc-cycles" aria-label="Progression du cycle">
+            <div
+              className="fc-cycles"
+              role="img"
+              aria-label={`${pomodorosDone} sur ${cycleCount} pomodoros avant la longue pause`}
+            >
               {Array.from({ length: cycleCount }).map((_, i) => (
                 <span
                   key={i}
+                  aria-hidden="true"
                   className={`fc-cycle-dot${i < pomodorosDone ? " done" : ""}`}
                 />
               ))}
@@ -466,7 +477,7 @@ export function FocusView({
           )}
 
           {/* Controls */}
-          <div className="fc-controls" style={{ marginTop: 20 }}>
+          <div className="fc-controls">
             <button
               type="button"
               className="fc-btn"
@@ -510,73 +521,39 @@ export function FocusView({
             </button>
           </div>
 
-          <p className="fc-controls-hint">{controlHint}</p>
+          <p className="fc-controls-hint" aria-live="polite">
+            {controlHint}
+          </p>
+
+          {actionError && (
+            <p className="fc-action-error" role="alert">
+              {actionError}
+            </p>
+          )}
 
           {/* Settings panel */}
           {settingsOpen && (
             <div className="fc-settings-panel">
-              <div className="fc-setting-row">
-                <label className="fc-setting-label">Focus (min)</label>
-                <input
-                  type="number"
-                  className="fc-setting-input"
-                  min={1}
-                  max={120}
-                  value={settings.focusMinutes}
-                  onChange={(e) => handleSettingsChange("focusMinutes", e.target.value)}
+              <div className="fc-setting-toggle">
+                <Checkbox
+                  done={settings.autoAdvance}
+                  size={20}
+                  label="Enchaîner automatiquement les phases"
+                  onToggle={toggleAutoAdvance}
                 />
-              </div>
-              <div className="fc-setting-row">
-                <label className="fc-setting-label">Pause (min)</label>
-                <input
-                  type="number"
-                  className="fc-setting-input"
-                  min={1}
-                  max={60}
-                  value={settings.breakMinutes}
-                  onChange={(e) => handleSettingsChange("breakMinutes", e.target.value)}
-                />
-              </div>
-              <div className="fc-setting-row">
-                <label className="fc-setting-label">Longue pause (min)</label>
-                <input
-                  type="number"
-                  className="fc-setting-input"
-                  min={1}
-                  max={60}
-                  value={settings.longBreakMinutes}
-                  onChange={(e) => handleSettingsChange("longBreakMinutes", e.target.value)}
-                />
-              </div>
-              <div className="fc-setting-row">
-                <label className="fc-setting-label">Pomodoros / cycle</label>
-                <input
-                  type="number"
-                  className="fc-setting-input"
-                  min={1}
-                  max={10}
-                  value={settings.longBreakInterval}
-                  onChange={(e) => handleSettingsChange("longBreakInterval", e.target.value)}
-                />
+                <div className="fc-setting-toggle-text">
+                  <span className="fc-setting-toggle-title">Enchaîner automatiquement</span>
+                  <span className="fc-setting-toggle-desc">
+                    Démarre la phase suivante sans attendre. Sinon, le minuteur
+                    s’arrête à chaque fin de phase.
+                  </span>
+                </div>
               </div>
 
-              <label className="fc-setting-toggle">
-                <input
-                  type="checkbox"
-                  checked={settings.soundEnabled}
-                  onChange={() => handleToggle("soundEnabled")}
-                />
-                <span>Son de fin de phase</span>
-              </label>
-
-              <label className="fc-setting-toggle">
-                <input
-                  type="checkbox"
-                  checked={settings.autoAdvance}
-                  onChange={() => handleToggle("autoAdvance")}
-                />
-                <span>Enchaîner automatiquement</span>
-              </label>
+              <p className="fc-settings-link">
+                Durées et son&nbsp;:{" "}
+                <Link href="/settings">à régler dans Réglages</Link>.
+              </p>
             </div>
           )}
 

@@ -1,6 +1,18 @@
 import { createClient } from "@/lib/supabase/server";
-import type { PomodoroMode, PomodoroSession } from "@/lib/types";
+import type {
+  FocusServerSettings,
+  PomodoroMode,
+  PomodoroSession,
+} from "@/lib/types";
 import { FocusView } from "./FocusView";
+
+const SETTINGS_DEFAULTS: FocusServerSettings = {
+  focusMinutes: 25,
+  breakMinutes: 5,
+  longBreakMinutes: 15,
+  longBreakInterval: 4,
+  soundEnabled: true,
+};
 
 type SessionRow = {
   id: string;
@@ -24,7 +36,7 @@ export default async function FocusPage({
     data: { user },
   } = await supabase.auth.getUser();
 
-  const [{ data: sessionsRaw }, { data: tasksRaw }] = await Promise.all([
+  const [{ data: sessionsRaw }, { data: tasksRaw }, { data: prefsRaw }] = await Promise.all([
     supabase
       .from("pomodoro_sessions")
       .select("id, mode, duration_seconds, started_at, ended_at, task_id, tasks(title)")
@@ -36,7 +48,30 @@ export default async function FocusPage({
       .eq("status", "open")
       .order("created_at", { ascending: false })
       .limit(100),
+    supabase
+      .from("user_preferences")
+      .select("focus_minutes, break_minutes, long_break_minutes, long_break_interval, sound_enabled")
+      .eq("user_id", user?.id ?? "")
+      .maybeSingle(),
   ]);
+
+  const p = prefsRaw as {
+    focus_minutes: number;
+    break_minutes: number;
+    long_break_minutes: number;
+    long_break_interval: number;
+    sound_enabled: boolean;
+  } | null;
+
+  const serverSettings: FocusServerSettings = p
+    ? {
+        focusMinutes: p.focus_minutes,
+        breakMinutes: p.break_minutes,
+        longBreakMinutes: p.long_break_minutes,
+        longBreakInterval: p.long_break_interval,
+        soundEnabled: p.sound_enabled,
+      }
+    : SETTINGS_DEFAULTS;
 
   const sessions: PomodoroSession[] = ((sessionsRaw ?? []) as unknown as SessionRow[]).map(
     (r) => ({
@@ -65,6 +100,7 @@ export default async function FocusPage({
       openTasks={openTasks}
       userId={user?.id ?? ""}
       initialTaskId={preselectTaskId}
+      serverSettings={serverSettings}
     />
   );
 }

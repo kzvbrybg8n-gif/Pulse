@@ -74,6 +74,15 @@ export type PomodoroSettings = {
   autoAdvance: boolean;
 };
 
+/** Durées + son canoniques, lus depuis les prefs serveur (édités dans Réglages). */
+export type FocusServerSettings = {
+  focusMinutes: number;
+  breakMinutes: number;
+  longBreakMinutes: number;
+  longBreakInterval: number;
+  soundEnabled: boolean;
+};
+
 export type HabitPeriod = "day" | "week" | "month";
 
 export type Habit = {
