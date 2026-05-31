@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { IconPlus } from "@/components/icons";
 import { HabitModal } from "@/components/habits/HabitModal";
 import { HabitRow } from "@/components/habits/HabitRow";
+import { HabitWeekStrip } from "@/components/habits/HabitWeekStrip";
 import { createClient } from "@/lib/supabase/client";
 import { localDateStr } from "@/lib/habits/streak";
 import type { Habit } from "@/lib/types";
@@ -179,6 +180,8 @@ export function HabitsView({ initialHabits, userId }: Props) {
               </button>
             </div>
           </div>
+
+          {habits.length > 0 && <HabitWeekStrip habits={habits} />}
 
           <div className="hb-error" role="status" aria-live="polite">
             {errorMsg}

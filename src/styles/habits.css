@@ -26,6 +26,56 @@
   font-weight: 600;
 }
 
+/* ── Bandeau de semaine (progression par jour) ─────────────── */
+.hb-week {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: var(--space-1);
+  margin-bottom: var(--space-5);
+}
+
+.hb-week-day {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  padding: var(--space-2) var(--space-1) var(--space-3);
+  border-radius: var(--radius-md);
+}
+
+.hb-week-day.is-today {
+  background: var(--bg-sunken);
+}
+
+.hb-week-dow {
+  font-family: var(--font-sans);
+  font-size: 11px;
+  color: var(--fg-faint);
+  text-transform: lowercase;
+}
+
+.hb-week-num {
+  font-family: var(--font-sans);
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--fg-muted);
+  margin-bottom: 4px;
+}
+
+.hb-week-day.is-today .hb-week-dow,
+.hb-week-day.is-today .hb-week-num {
+  color: var(--accent-text);
+}
+
+.hb-week-ring-bg {
+  stroke: var(--line-2);
+}
+
+.hb-week-ring-fg {
+  stroke: var(--accent);
+  transition: stroke-dashoffset 0.4s ease;
+}
+
 /* Modal form fields */
 .hb-field {
   margin-bottom: 20px;
