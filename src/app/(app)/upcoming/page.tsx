@@ -1,4 +1,5 @@
 import { createClient } from "@/lib/supabase/server";
+import { getAuthClaims } from "@/lib/supabase/user";
 import type { TaskRow } from "@/lib/tasks/fromDb";
 import { groupByDay } from "@/lib/tasks/groupByDay";
 import { UpcomingView } from "./UpcomingView";
@@ -35,9 +36,7 @@ export default async function UpcomingPage() {
     );
   }
 
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+  const user = await getAuthClaims(supabase);
 
   const rows = (data ?? []) as unknown as TaskRow[];
   const groups = groupByDay(rows, now);

@@ -1,4 +1,5 @@
 import { createClient } from "@/lib/supabase/server";
+import { getAuthClaims } from "@/lib/supabase/user";
 import type { TaskRow } from "@/lib/tasks/fromDb";
 import { taskFromRow } from "@/lib/tasks/fromDb";
 import { AllView } from "./AllView";
@@ -30,9 +31,7 @@ export default async function AllPage() {
     );
   }
 
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+  const user = await getAuthClaims(supabase);
 
   const rows = (data ?? []) as unknown as TaskRow[];
   const tasks = rows.map((r) => taskFromRow(r, now));

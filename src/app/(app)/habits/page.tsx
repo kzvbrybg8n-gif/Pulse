@@ -1,4 +1,5 @@
 import { createClient } from "@/lib/supabase/server";
+import { getAuthClaims } from "@/lib/supabase/user";
 import { habitFromRow, type HabitRow } from "@/lib/habits/fromDb";
 import { localDateStr } from "@/lib/habits/streak";
 import { HabitsView } from "./HabitsView";
@@ -9,9 +10,7 @@ export default async function HabitsPage() {
 
   const windowStartStr = localDateStr(new Date(now.getTime() - 35 * 86_400_000));
 
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+  const user = await getAuthClaims(supabase);
 
   const { data, error } = await supabase
     .from("habits")

@@ -71,6 +71,21 @@ html, body { height: 100%; }
 .pk-content { flex: 1; overflow-y: auto; min-width: 0; }
 .pk-content-inner { max-width: 720px; margin: 0 auto; padding: 44px 40px 64px; }
 
+/* ---- Squelette de navigation (loading.tsx) ---------------- */
+.pk-skeleton { display: flex; flex-direction: column; gap: 16px; padding-top: 8px; }
+.pk-skel-line { height: 16px; border-radius: var(--radius-sm); background: var(--bg-hover);
+  position: relative; overflow: hidden; }
+.pk-skel-title { height: 28px; width: 40%; margin-bottom: 12px; }
+.pk-skel-short { width: 60%; }
+.pk-skel-line::after { content: ""; position: absolute; inset: 0;
+  transform: translateX(-100%);
+  background: linear-gradient(90deg, transparent, var(--bg-raised), transparent);
+  animation: pk-skel-shimmer 1.4s ease-in-out infinite; }
+@keyframes pk-skel-shimmer { 100% { transform: translateX(100%); } }
+@media (prefers-reduced-motion: reduce) {
+  .pk-skel-line::after { animation: none; }
+}
+
 /* ---- Sidebar : recherche ---------------------------------- */
 .pk-side-search {
   display: flex; align-items: center; gap: 10px;

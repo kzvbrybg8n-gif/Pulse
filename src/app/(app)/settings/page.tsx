@@ -1,5 +1,6 @@
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
+import { getAuthClaims } from "@/lib/supabase/user";
 import { SettingsView } from "./SettingsView";
 
 export const metadata = { title: "Réglages — Pulse" };
@@ -32,11 +33,9 @@ const PREF_DEFAULTS: UserPrefsRow = {
 
 export default async function SettingsPage() {
   const supabase = await createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+  const user = await getAuthClaims(supabase);
 
-  if (!user) redirect("/login");
+  if (!user.id) redirect("/login");
 
   const { data: row } = await supabase
     .from("user_preferences")

@@ -1,4 +1,5 @@
 import { createClient } from "@/lib/supabase/server";
+import { getAuthClaims } from "@/lib/supabase/user";
 import type { TaskRow } from "@/lib/tasks/fromDb";
 import { groupToday } from "@/lib/tasks/groupToday";
 import { TodayView } from "./TodayView";
@@ -39,9 +40,7 @@ export default async function TodayPage() {
   const rows = (data ?? []) as unknown as TaskRow[];
   const { overdue, today } = groupToday(rows, now);
 
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+  const user = await getAuthClaims(supabase);
 
   const dateLabel = new Intl.DateTimeFormat("fr-FR", {
     weekday: "long",

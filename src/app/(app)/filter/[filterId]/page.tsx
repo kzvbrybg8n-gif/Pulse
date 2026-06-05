@@ -1,4 +1,5 @@
 import { createClient } from "@/lib/supabase/server";
+import { getAuthClaims } from "@/lib/supabase/user";
 import { FilterView } from "./FilterView";
 
 export default async function FilterPage({
@@ -8,9 +9,7 @@ export default async function FilterPage({
 }) {
   const { filterId } = await params;
   const supabase = await createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+  const user = await getAuthClaims(supabase);
 
   return <FilterView filterId={filterId} userId={user?.id ?? ""} />;
 }

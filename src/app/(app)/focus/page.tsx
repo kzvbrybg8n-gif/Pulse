@@ -1,4 +1,5 @@
 import { createClient } from "@/lib/supabase/server";
+import { getAuthClaims } from "@/lib/supabase/user";
 import type {
   FocusServerSettings,
   PomodoroMode,
@@ -32,9 +33,7 @@ export default async function FocusPage({
   const { task: initialTaskId } = await searchParams;
   const supabase = await createClient();
 
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+  const user = await getAuthClaims(supabase);
 
   const [{ data: sessionsRaw }, { data: focusLogRaw }, { data: tasksRaw }, { data: prefsRaw }] =
     await Promise.all([

@@ -1,5 +1,6 @@
 import { notFound } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
+import { getAuthClaims } from "@/lib/supabase/user";
 import type { TaskRow } from "@/lib/tasks/fromDb";
 import { taskFromRow } from "@/lib/tasks/fromDb";
 import { ListView } from "./ListView";
@@ -49,9 +50,7 @@ export default async function ListPage({
     );
   }
 
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+  const user = await getAuthClaims(supabase);
 
   const rows = (data ?? []) as unknown as TaskRow[];
   const tasks = rows.map((r) => taskFromRow(r, now));

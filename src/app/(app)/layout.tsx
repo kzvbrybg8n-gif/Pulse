@@ -1,27 +1,20 @@
-import { redirect } from "next/navigation";
-import { createClient } from "@/lib/supabase/server";
 import { PushManager } from "@/components/ui/PushManager";
 import { Sidebar } from "@/components/layout/Sidebar";
 import { MobileTabs } from "@/components/layout/MobileTabs";
 
 /**
  * Layout des routes applicatives protégées.
- * Double garde (le middleware redirige déjà) : vérifie la session côté
- * serveur via getUser() — défense en profondeur. Aucune route sous ce
- * groupe ne se rend sans utilisateur authentifié.
+ *
+ * La garde d'authentification est assurée par le middleware (updateSession),
+ * qui appelle `getUser()` — revalidation distante du JWT — sur chaque requête
+ * et redirige vers /login si nécessaire. On ne la duplique donc PAS ici :
+ * un second `getUser()` ajoutait un aller-retour réseau bloquant à chaque
+ * navigation, sans bénéfice de sécurité (le middleware s'exécute avant ce
+ * rendu).
  */
-export default async function AppLayout({
+export default function AppLayout({
   children,
 }: Readonly<{ children: React.ReactNode }>) {
-  const supabase = await createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-
-  if (!user) {
-    redirect("/login");
-  }
-
   // Chrome persistante : Sidebar + MobileTabs vivent dans le layout, donc
   // restent montés d'une vue à l'autre (le layout ne se re-rend pas lors
   // d'une navigation entre routes sœurs — seul {children} change). Chaque

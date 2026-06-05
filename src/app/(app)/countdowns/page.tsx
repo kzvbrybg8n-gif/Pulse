@@ -1,13 +1,12 @@
 import { createClient } from "@/lib/supabase/server";
+import { getAuthClaims } from "@/lib/supabase/user";
 import { countdownFromRow, type CountdownRow } from "@/lib/countdowns/fromDb";
 import { CountdownsView } from "./CountdownsView";
 
 export default async function CountdownsPage() {
   const supabase = await createClient();
 
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+  const user = await getAuthClaims(supabase);
 
   const { data, error } = await supabase
     .from("countdowns")
