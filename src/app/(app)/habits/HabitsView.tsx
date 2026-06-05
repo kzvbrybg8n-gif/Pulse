@@ -11,6 +11,13 @@ import { createClient } from "@/lib/supabase/client";
 import { localDateStr } from "@/lib/habits/streak";
 import type { Habit } from "@/lib/types";
 
+const TODAY_FMT = new Intl.DateTimeFormat("fr-FR", {
+  weekday: "long",
+  day: "numeric",
+  month: "long",
+  year: "numeric",
+});
+
 type ModalTarget = Habit | "new" | null;
 
 function optimisticToggle(habit: Habit): Habit {
@@ -154,9 +161,20 @@ export function HabitsView({ initialHabits, userId }: Props) {
     }
   }
 
+  function handleRowDelete(id: string) {
+    const habit = habits.find((h) => h.id === id);
+    const name = habit ? ` « ${habit.name} »` : "";
+    if (!window.confirm(`Supprimer l'habitude${name} ? Cette action est définitive.`)) return;
+    void handleDelete(id);
+  }
+
   const checkedCount = habits.filter((h) => h.checkedToday).length;
   const total = habits.length;
+  const todoHabits = habits.filter((h) => !h.checkedToday);
+  const doneHabits = habits.filter((h) => h.checkedToday);
   const detailHabit = detailId ? habits.find((h) => h.id === detailId) ?? null : null;
+
+  const todayLabel = TODAY_FMT.format(new Date());
 
   return (
     <>
@@ -165,13 +183,14 @@ export function HabitsView({ initialHabits, userId }: Props) {
           <div className="pk-view-head">
             <div>
               <h1 className="pk-view-title">Habitudes</h1>
+              <div className="pk-view-sub hb-view-date">{todayLabel}</div>
+              {total > 0 && (
+                <div className="pk-view-count">
+                  {checkedCount} sur {total} complétée{checkedCount > 1 ? "s" : ""} aujourd&apos;hui
+                </div>
+              )}
             </div>
             <div className="hb-head-actions">
-              {total > 0 && (
-                <span className="hb-count-badge">
-                  {checkedCount} / {total} aujourd&apos;hui
-                </span>
-              )}
               <button
                 type="button"
                 className="pk-qa-go"
@@ -205,25 +224,51 @@ export function HabitsView({ initialHabits, userId }: Props) {
             </div>
           ) : (
             <div className="pk-section">
-              <div className="pk-listcard hb-list">
-                {habits.map((habit) => (
-                  <HabitRow
-                    key={habit.id}
-                    habit={habit}
-                    selected={habit.id === detailId}
-                    onToggle={toggleCheckin}
-                    onEdit={setModalTarget}
-                    onOpen={(h) => setDetailId(h.id)}
-                  />
-                ))}
-              </div>
+              {todoHabits.length > 0 && (
+                <>
+                  <div className="pk-section-lab">À faire</div>
+                  <div className="pk-listcard hb-list">
+                    {todoHabits.map((habit) => (
+                      <HabitRow
+                        key={habit.id}
+                        habit={habit}
+                        selected={habit.id === detailId}
+                        onToggle={toggleCheckin}
+                        onEdit={setModalTarget}
+                        onOpen={(h) => setDetailId(h.id)}
+                        onDelete={handleRowDelete}
+                      />
+                    ))}
+                  </div>
+                </>
+              )}
+
+              {doneHabits.length > 0 && (
+                <>
+                  <div className="pk-section-lab">Complétées aujourd&apos;hui</div>
+                  <div className="pk-listcard hb-list">
+                    {doneHabits.map((habit) => (
+                      <HabitRow
+                        key={habit.id}
+                        habit={habit}
+                        selected={habit.id === detailId}
+                        onToggle={toggleCheckin}
+                        onEdit={setModalTarget}
+                        onOpen={(h) => setDetailId(h.id)}
+                        onDelete={handleRowDelete}
+                      />
+                    ))}
+                  </div>
+                </>
+              )}
+
               <button
                 type="button"
                 className="hb-add-btn"
                 onClick={() => setModalTarget("new")}
               >
                 <IconPlus size={14} />
-                Ajouter une habitude
+                Nouvelle habitude
               </button>
             </div>
           )}
