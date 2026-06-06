@@ -120,6 +120,52 @@ html, body { height: 100%; }
   transition: transform var(--dur-base) var(--ease-out); }
 .pk-folder-chev.open { transform: rotate(90deg); }
 
+/* ---- Gestion dossiers / listes (création, renommage, menu) - */
+.pk-folder-row { position: relative; display: flex; align-items: center; }
+.pk-folder-row .pk-folder-head { flex: 1; }
+.pk-list-row { position: relative; display: flex; align-items: center; }
+.pk-list-row .pk-listitem { flex: 1; }
+
+/* Actions au survol (ajout liste / menu) : discrètes, révélées au survol. */
+.pk-row-actions { display: flex; align-items: center; gap: 1px; padding-right: 4px; }
+.pk-row-actions,
+.pk-list-row > .fp-side-add-btn { opacity: 0; transition: opacity var(--dur-fast) var(--ease-out); }
+.pk-folder-row:hover .pk-row-actions,
+.pk-folder-row:focus-within .pk-row-actions,
+.pk-list-row:hover > .fp-side-add-btn,
+.pk-list-row:focus-within > .fp-side-add-btn { opacity: 1; }
+
+/* Champ de saisie inline (création / renommage) */
+.pk-side-newrow { display: flex; align-items: center; gap: 8px; padding: 7px 12px 7px 8px;
+  color: var(--fg-subtle); }
+.pk-side-newrow.pk-side-newrow-list { padding-left: 32px; gap: 9px; }
+.pk-side-newrow svg { flex: none; }
+.pk-side-input { flex: 1; min-width: 0; border: none; background: transparent;
+  font-family: var(--font-sans); font-size: var(--text-sm); color: var(--fg);
+  border-bottom: 1px solid var(--accent); padding: 1px 0; }
+.pk-side-input:focus { outline: none; }
+.pk-side-input::placeholder { color: var(--fg-faint); }
+
+/* Menu contextuel (Renommer / Supprimer) */
+.pk-menu-back { position: fixed; inset: 0; z-index: 40; }
+.pk-menu { position: absolute; top: 100%; right: 6px; z-index: 41; min-width: 148px;
+  background: var(--bg-raised); border: 1px solid var(--border); border-radius: var(--radius-sm);
+  box-shadow: 0 6px 22px -6px rgba(33, 31, 27, 0.22); padding: 4px; display: flex; flex-direction: column; }
+.pk-menu-item { display: flex; align-items: center; gap: 8px; padding: 7px 9px; width: 100%;
+  text-align: left; border: none; background: transparent; border-radius: 5px;
+  font-family: var(--font-sans); font-size: var(--text-sm); color: var(--fg-muted); }
+.pk-menu-item svg { flex: none; }
+.pk-menu-item:hover { background: var(--bg-hover); color: var(--fg); }
+.pk-menu-item.danger { color: var(--signal, var(--clay-1)); }
+.pk-menu-item.danger:hover { background: var(--clay-soft); color: var(--clay-2); }
+
+/* Confirmation de suppression inline */
+.pk-side-confirm { display: flex; flex-direction: column; gap: 6px;
+  margin: 2px 6px 6px; padding: 8px 10px; background: var(--bg-sunken);
+  border: 1px solid var(--border); border-radius: var(--radius-sm);
+  font-size: 12.5px; color: var(--fg-muted); }
+.pk-side-confirm-actions { display: flex; gap: 8px; }
+
 /* ---- Bas de barre latérale -------------------------------- */
 .pk-side-foot {
   margin-top: auto; padding-top: 14px; border-top: 1px solid var(--border);

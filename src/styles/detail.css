@@ -113,19 +113,30 @@
   flex: none;
 }
 
-/* ── Liste assignée ──────────────────────────────────────── */
+/* ── Liste assignée (rangement dans un dossier) ──────────── */
+.pd-list-wrap {
+  position: relative;
+  margin: 10px 16px 0;
+}
 .pd-list-row {
   display: flex;
   align-items: center;
   gap: 6px;
-  margin: 10px 16px 0;
   padding: 6px 8px;
+  border: none;
+  background: transparent;
   border-radius: 6px;
   color: var(--fg-muted);
   font-size: 12.5px;
   font-weight: 500;
-  cursor: default;
-  width: calc(100% - 32px);
+  cursor: pointer;
+  width: 100%;
+  text-align: left;
+  font-family: var(--font-sans);
+  transition: background var(--dur-fast) var(--ease-out);
+}
+.pd-list-row:hover {
+  background: var(--bg-hover);
 }
 .pd-list-row .pd-list-folder {
   color: var(--fg-subtle);
@@ -136,6 +147,75 @@
 .pd-list-row .pd-list-name {
   color: var(--fg-muted);
   font-weight: 600;
+}
+.pd-list-row .pd-list-name.faint {
+  color: var(--fg-faint);
+  font-weight: 500;
+}
+
+/* Dropdown de sélection */
+.pd-list-back {
+  position: fixed;
+  inset: 0;
+  z-index: 40;
+}
+.pd-list-menu {
+  position: absolute;
+  top: calc(100% + 4px);
+  left: 0;
+  right: 0;
+  z-index: 41;
+  max-height: 280px;
+  overflow-y: auto;
+  background: var(--bg-raised);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  box-shadow: 0 8px 26px -6px rgba(33, 31, 27, 0.22);
+  padding: 4px;
+}
+.pd-list-group {
+  margin-top: 2px;
+}
+.pd-list-group-lbl {
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--fg-subtle);
+  padding: 8px 10px 3px;
+}
+.pd-list-opt {
+  display: flex;
+  align-items: center;
+  width: 100%;
+  text-align: left;
+  border: none;
+  background: transparent;
+  border-radius: 5px;
+  padding: 7px 10px;
+  font-family: var(--font-sans);
+  font-size: 13px;
+  color: var(--fg-muted);
+}
+.pd-list-opt.sub {
+  padding-left: 20px;
+}
+.pd-list-opt:hover {
+  background: var(--bg-hover);
+  color: var(--fg);
+}
+.pd-list-opt.sel {
+  color: var(--accent-text);
+  font-weight: 600;
+  background: var(--accent-bg);
+}
+.pd-list-empty {
+  padding: 8px 10px;
+  font-size: 12.5px;
+  color: var(--fg-faint);
+}
+.pd-list-empty.sub {
+  padding-left: 20px;
 }
 
 /* ── Séparateur ──────────────────────────────────────────── */

@@ -42,6 +42,8 @@ type DetailData = {
   tags: string[];
 };
 
+type FolderOption = { id: string; name: string; lists: { id: string; name: string }[] };
+
 /* ── Utilitaires ─────────────────────────────────────────── */
 
 function isoToDatetimeLocal(iso: string): string {
@@ -97,6 +99,10 @@ export function TaskDetail({ taskId, userId, onClose, onUpdate, onDelete }: Prop
   const [showTagInput, setShowTagInput] = useState(false);
   const [newTag, setNewTag] = useState("");
   const [deleteConfirm, setDeleteConfirm] = useState(false);
+
+  // Sélecteur de liste (rangement dans un dossier)
+  const [listPickerOpen, setListPickerOpen] = useState(false);
+  const [folderOptions, setFolderOptions] = useState<FolderOption[] | null>(null);
 
   const titleRef = useRef<HTMLTextAreaElement>(null);
   const tagInputRef = useRef<HTMLInputElement>(null);
@@ -347,6 +353,41 @@ export function TaskDetail({ taskId, userId, onClose, onUpdate, onDelete }: Prop
     onUpdate(detail.id, { tags });
   }
 
+  // ── Liste (rangement dans un dossier) ──────────────────
+
+  async function openListPicker() {
+    setListPickerOpen(true);
+    if (folderOptions) return; // déjà chargé
+    const { data } = await supabase
+      .from("folders")
+      .select("id, name, order_index, lists(id, name, order_index)")
+      .order("order_index");
+
+    const opts: FolderOption[] = (data ?? []).map((f) => {
+      const fr = f as {
+        id: string;
+        name: string;
+        lists: { id: string; name: string; order_index: number }[];
+      };
+      return {
+        id: fr.id,
+        name: fr.name,
+        lists: (fr.lists ?? [])
+          .sort((a, b) => a.order_index - b.order_index)
+          .map((l) => ({ id: l.id, name: l.name })),
+      };
+    });
+    setFolderOptions(opts);
+  }
+
+  async function assignList(listId: string | null, listName: string | null, folderName: string | null) {
+    if (!detail) return;
+    setListPickerOpen(false);
+    if (listId === detail.list_id) return;
+    await supabase.from("tasks").update({ list_id: listId }).eq("id", detail.id);
+    setDetail((d) => d && { ...d, list_id: listId, list_name: listName, folder_name: folderName });
+  }
+
   // ── Suppression ────────────────────────────────────────
 
   async function deleteTaskHandler() {
@@ -408,16 +449,71 @@ export function TaskDetail({ taskId, userId, onClose, onUpdate, onDelete }: Prop
 
         {/* Scrollable body */}
         <div className="pd-body">
-          {/* Liste */}
-          <div className="pd-list-row">
-            <IconFolder size={13} style={{ color: "var(--fg-subtle)", flex: "none" }} />
-            {detail.folder_name && (
+          {/* Liste (rangement dans un dossier) */}
+          <div className="pd-list-wrap">
+            <button
+              type="button"
+              className="pd-list-row"
+              aria-haspopup="menu"
+              aria-expanded={listPickerOpen}
+              onClick={() => (listPickerOpen ? setListPickerOpen(false) : void openListPicker())}
+            >
+              <IconFolder size={13} style={{ color: "var(--fg-subtle)", flex: "none" }} />
+              {detail.folder_name && (
+                <>
+                  <span className="pd-list-folder">{detail.folder_name}</span>
+                  <span className="pd-list-sep">›</span>
+                </>
+              )}
+              <span className={"pd-list-name" + (detail.list_name ? "" : " faint")}>
+                {detail.list_name ?? "Aucune liste"}
+              </span>
+            </button>
+            {listPickerOpen && (
               <>
-                <span className="pd-list-folder">{detail.folder_name}</span>
-                <span className="pd-list-sep">›</span>
+                <div className="pd-list-back" role="presentation" onClick={() => setListPickerOpen(false)} />
+                <div className="pd-list-menu" role="menu">
+                  <button
+                    type="button"
+                    role="menuitemradio"
+                    aria-checked={detail.list_id === null}
+                    className={"pd-list-opt" + (detail.list_id === null ? " sel" : "")}
+                    onClick={() => void assignList(null, null, null)}
+                  >
+                    Aucune liste
+                  </button>
+                  {folderOptions === null ? (
+                    <div className="pd-list-empty">Chargement…</div>
+                  ) : folderOptions.length === 0 ? (
+                    <div className="pd-list-empty">
+                      Aucune liste. Créez-en une depuis la barre latérale.
+                    </div>
+                  ) : (
+                    folderOptions.map((f) => (
+                      <div key={f.id} className="pd-list-group">
+                        <div className="pd-list-group-lbl">{f.name}</div>
+                        {f.lists.length === 0 ? (
+                          <div className="pd-list-empty sub">Aucune liste</div>
+                        ) : (
+                          f.lists.map((l) => (
+                            <button
+                              key={l.id}
+                              type="button"
+                              role="menuitemradio"
+                              aria-checked={detail.list_id === l.id}
+                              className={"pd-list-opt sub" + (detail.list_id === l.id ? " sel" : "")}
+                              onClick={() => void assignList(l.id, l.name, f.name)}
+                            >
+                              {l.name}
+                            </button>
+                          ))
+                        )}
+                      </div>
+                    ))
+                  )}
+                </div>
               </>
             )}
-            <span className="pd-list-name">{detail.list_name ?? "Aucune liste"}</span>
           </div>
 
           <div className="pd-sep" />
