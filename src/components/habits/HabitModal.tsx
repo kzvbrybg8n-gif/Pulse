@@ -116,7 +116,7 @@ export function HabitModal({ initialHabit, userId, onSave, onDelete, onClose }: 
           </div>
         </div>
 
-        <div className="pd-body">
+        <div className="pd-body hb-modal-body">
           {/* Nom */}
           <div className="hb-field">
             <label className="hb-field-label" htmlFor="hb-name">Nom</label>

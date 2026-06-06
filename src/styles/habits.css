@@ -492,6 +492,10 @@
 }
 
 /* Modal form fields */
+.hb-modal-body {
+  padding: 20px 16px 4px;
+}
+
 .hb-field {
   margin-bottom: 20px;
 }
@@ -521,7 +525,8 @@
 }
 
 .hb-input:focus {
-  border-color: var(--green-1);
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px var(--accent-bg);
 }
 
 .hb-select {
@@ -542,7 +547,8 @@
 }
 
 .hb-select:focus {
-  border-color: var(--green-1);
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px var(--accent-bg);
 }
 
 .hb-target-row {
@@ -565,7 +571,8 @@
 }
 
 .hb-target-input:focus {
-  border-color: var(--green-1);
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px var(--accent-bg);
 }
 
 .hb-target-lbl {
