@@ -13,6 +13,7 @@ import {
 import { Checkbox } from "@/components/ui/Checkbox";
 import { createClient } from "@/lib/supabase/client";
 import { loadAutoAdvance, saveAutoAdvance } from "@/lib/pomodoro/settings";
+import { loadTimer, saveTimer, secondsLeftFrom } from "@/lib/pomodoro/timerStore";
 import type {
   FocusServerSettings,
   PomodoroMode,
@@ -149,7 +150,15 @@ export function FocusView({
   const [isLongBreak, setIsLongBreak] = useState(false);
   const [pomodorosDone, setPomodorosDone] = useState(0);
   const [secondsLeft, setSecondsLeft] = useState(() => serverSettings.focusMinutes * 60);
+  // Horodatage de fin absolu quand le minuteur tourne (null sinon). Le temps
+  // restant en découle, ce qui rend le décompte robuste au démontage de la vue
+  // et au throttling des onglets en arrière-plan.
+  const [endsAt, setEndsAt] = useState<number | null>(null);
   const [selectedTaskId, setSelectedTaskId] = useState<string | null>(initialTaskId);
+
+  // Drapeau d'hydratation : on ne persiste qu'après avoir restauré l'état
+  // sauvegardé, pour ne pas l'écraser avec les valeurs par défaut au montage.
+  const hydratedRef = useRef(false);
 
   // Data state
   const [taskList, setTaskList] = useState<OpenTask[]>(openTasks);
@@ -165,15 +174,71 @@ export function FocusView({
   // Ref to track when each session started (for started_at in DB)
   const startedAtRef = useRef<Date | null>(null);
 
-  /* ── Interval ──────────────────────────────────────── */
+  /* ── Hydratation depuis le stockage local (au montage) ─ */
+  // Faite en effet (pas dans l'initialiseur de state) pour éviter toute
+  // divergence d'hydratation SSR : le premier rendu affiche les valeurs par
+  // défaut du serveur, puis on restaure l'état réel côté client.
+  useEffect(() => {
+    const saved = loadTimer();
+    if (saved) {
+      setPhase(saved.phase);
+      setMode(saved.mode);
+      setIsLongBreak(saved.isLongBreak);
+      setPomodorosDone(saved.pomodorosDone);
+      startedAtRef.current = saved.startedAt ? new Date(saved.startedAt) : null;
+      if (saved.phase === "running" && saved.endsAt !== null) {
+        // Le minuteur tournait : on reprend là où l'horloge en est. Si la phase
+        // s'est terminée pendant l'absence, secondsLeft = 0 déclenchera la
+        // complétion via l'effet dédié.
+        setEndsAt(saved.endsAt);
+        setSecondsLeft(secondsLeftFrom(saved.endsAt));
+      } else {
+        setEndsAt(null);
+        setSecondsLeft(saved.secondsLeft);
+      }
+      // Une session en cours/en pause conserve sa tâche associée ; sinon la
+      // tâche passée par l'URL (focus lancé depuis une tâche) reste prioritaire.
+      if (saved.phase !== "idle" && initialTaskId === null) {
+        setSelectedTaskId(saved.selectedTaskId);
+      }
+    }
+    hydratedRef.current = true;
+    // initialTaskId : valeur figée au montage, pas de re-déclenchement attendu.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  /* ── Persistance de l'état du minuteur ─────────────── */
+  // secondsLeft est volontairement hors dépendances : quand le minuteur tourne,
+  // endsAt fait foi (recalcul à la lecture), ce qui évite une écriture/seconde.
+  // À la pause, le changement de phase/endsAt déclenche l'écriture et fige
+  // secondsLeft via la ref.
+  const secondsLeftRef = useRef(secondsLeft);
+  secondsLeftRef.current = secondsLeft;
 
   useEffect(() => {
-    if (phase !== "running") return;
-    const id = setInterval(() => {
-      setSecondsLeft((s) => Math.max(0, s - 1));
-    }, 1000);
+    if (!hydratedRef.current) return;
+    saveTimer({
+      phase,
+      mode,
+      isLongBreak,
+      pomodorosDone,
+      selectedTaskId,
+      startedAt: startedAtRef.current ? startedAtRef.current.toISOString() : null,
+      endsAt,
+      secondsLeft: secondsLeftRef.current,
+    });
+  }, [phase, mode, isLongBreak, pomodorosDone, selectedTaskId, endsAt]);
+
+  /* ── Interval ──────────────────────────────────────── */
+  // Recalcule le temps restant depuis endsAt à chaque tick : robuste à la
+  // dérive et au throttling (un onglet en arrière-plan « rattrape » au retour).
+  useEffect(() => {
+    if (phase !== "running" || endsAt === null) return;
+    const tick = () => setSecondsLeft(secondsLeftFrom(endsAt));
+    tick();
+    const id = setInterval(tick, 500);
     return () => clearInterval(id);
-  }, [phase]);
+  }, [phase, endsAt]);
 
   /* ── Total focus de la tâche sélectionnée ──────────── */
 
@@ -249,26 +314,29 @@ export function FocusView({
     const nextMode: PomodoroMode = mode === "focus" ? "break" : "focus";
     if (settings.soundEnabled) playChime(nextMode);
 
+    let nextSecs: number;
     if (mode === "focus") {
       const newDone = pomodorosDone + 1;
       const nextLong = newDone >= settings.longBreakInterval;
-      const breakSecs =
-        (nextLong ? settings.longBreakMinutes : settings.breakMinutes) * 60;
+      nextSecs = (nextLong ? settings.longBreakMinutes : settings.breakMinutes) * 60;
       setPomodorosDone(nextLong ? 0 : newDone);
       setIsLongBreak(nextLong);
       setMode("break");
-      setSecondsLeft(breakSecs);
+      setSecondsLeft(nextSecs);
     } else {
+      nextSecs = settings.focusMinutes * 60;
       setIsLongBreak(false);
       setMode("focus");
-      setSecondsLeft(settings.focusMinutes * 60);
+      setSecondsLeft(nextSecs);
     }
 
     if (settings.autoAdvance) {
       startedAtRef.current = new Date();
+      setEndsAt(Date.now() + nextSecs * 1000);
       setPhase("running");
     } else {
       startedAtRef.current = null;
+      setEndsAt(null);
       setPhase("idle");
     }
   }, [
@@ -292,15 +360,20 @@ export function FocusView({
 
   function handleStart() {
     if (startedAtRef.current === null) startedAtRef.current = new Date();
+    setEndsAt(Date.now() + secondsLeft * 1000);
     setPhase("running");
   }
 
   function handlePause() {
+    // Fige le temps restant courant avant d'abandonner endsAt.
+    if (endsAt !== null) setSecondsLeft(secondsLeftFrom(endsAt));
+    setEndsAt(null);
     setPhase("paused");
   }
 
   function handleReset() {
     setPhase("idle");
+    setEndsAt(null);
     startedAtRef.current = null;
     const secs =
       mode === "focus"
@@ -313,6 +386,7 @@ export function FocusView({
 
   function handleSkip() {
     setPhase("idle");
+    setEndsAt(null);
     startedAtRef.current = null;
     if (mode === "focus") {
       setMode("break");
