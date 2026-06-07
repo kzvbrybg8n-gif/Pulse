@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import { IconCheck, IconFlame, IconMore, IconPencil, IconRepeat, IconTrash } from "@/components/icons";
+import { localDateStr } from "@/lib/habits/streak";
 import type { Habit } from "@/lib/types";
 
 const PERIOD_LABELS: Record<string, string> = {
@@ -13,22 +14,41 @@ const PERIOD_LABELS: Record<string, string> = {
 /** Au-delà de ce seuil, la série est mise en valeur avec un badge doré. */
 const GOLD_STREAK_THRESHOLD = 21;
 
+const DOT_FMT = new Intl.DateTimeFormat("fr-FR", { weekday: "long", day: "numeric", month: "long" });
+
 type Props = {
   habit: Habit;
   selected?: boolean;
-  onToggle: (id: string) => void;
+  onToggle: (id: string, day?: string) => void;
   onEdit: (habit: Habit) => void;
   onOpen: (habit: Habit) => void;
   onDelete: (id: string) => void;
 };
 
-/** Mini-calendrier : 7 points alignés (J-6 → aujourd'hui). */
-function MiniCal({ days }: { days: boolean[] }) {
+/**
+ * Mini-calendrier : 7 points cliquables (J-6 → aujourd'hui). Cliquer un point
+ * coche / décoche l'habitude pour ce jour-là — utile pour rattraper un oubli
+ * ou valider une habitude a posteriori (le lendemain).
+ */
+function MiniCal({ days, onToggleDay }: { days: boolean[]; onToggleDay: (day: string) => void }) {
+  const today = new Date();
   return (
-    <div className="hb-minical" aria-hidden="true">
-      {days.map((done, i) => (
-        <span key={i} className={"hb-dot" + (done ? " done" : " missed")} />
-      ))}
+    <div className="hb-minical">
+      {days.map((done, i) => {
+        const d = new Date(today);
+        d.setDate(today.getDate() - (6 - i));
+        const dayStr = localDateStr(d);
+        return (
+          <button
+            key={i}
+            type="button"
+            className={"hb-dot" + (done ? " done" : " missed")}
+            onClick={() => onToggleDay(dayStr)}
+            aria-pressed={done}
+            aria-label={`${done ? "Décocher" : "Cocher"} — ${DOT_FMT.format(d)}`}
+          />
+        );
+      })}
     </div>
   );
 }
@@ -99,8 +119,8 @@ export function HabitRow({ habit, selected, onToggle, onEdit, onOpen, onDelete }
         <div className="hb-freq">{freqLabel}</div>
       </button>
 
-      {/* Mini-calendrier 7 jours */}
-      <MiniCal days={habit.weekDots} />
+      {/* Mini-calendrier 7 jours (cliquable) */}
+      <MiniCal days={habit.weekDots} onToggleDay={(day) => onToggle(habit.id, day)} />
 
       {/* Série */}
       <StreakBadge streak={habit.streak} />

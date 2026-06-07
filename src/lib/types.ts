@@ -134,6 +134,7 @@ export type Habit = {
   streak: number;
   checkedToday: boolean;
   weekDots: boolean[]; // index 0 = 6 days ago, index 6 = today
+  logDays: string[]; // tous les jours cochés (YYYY-MM-DD), source des champs dérivés
   totalDone: number;
   createdAt: string;
 };

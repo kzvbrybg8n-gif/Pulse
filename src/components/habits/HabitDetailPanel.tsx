@@ -20,6 +20,7 @@ type Props = {
   habit: Habit;
   onClose: () => void;
   onEdit: (habit: Habit) => void;
+  onToggleDay: (id: string, day: string) => void;
 };
 
 type CalCell = {
@@ -28,13 +29,14 @@ type CalCell = {
   inMonth: boolean;
   checked: boolean;
   isToday: boolean;
+  isFuture: boolean;
 };
 
 function firstOfMonth(d: Date): Date {
   return new Date(d.getFullYear(), d.getMonth(), 1);
 }
 
-export function HabitDetailPanel({ habit, onClose, onEdit }: Props) {
+export function HabitDetailPanel({ habit, onClose, onEdit, onToggleDay }: Props) {
   const [supabase] = useState(() => createClient());
   const [logSet, setLogSet] = useState<Set<string>>(new Set());
   const [loading, setLoading] = useState(true);
@@ -99,12 +101,25 @@ export function HabitDetailPanel({ habit, onClose, onEdit }: Props) {
         inMonth: d.getMonth() === m,
         checked: logSet.has(ds),
         isToday: ds === todayStr,
+        isFuture: ds > todayStr,
       };
     });
   }, [month, logSet, todayStr]);
 
   function shiftMonth(delta: number) {
     setMonth((cur) => new Date(cur.getFullYear(), cur.getMonth() + delta, 1));
+  }
+
+  // Coche / décoche un jour du calendrier : maj optimiste locale + écriture via le parent.
+  function toggleDay(cell: CalCell) {
+    if (!cell.inMonth || cell.isFuture) return;
+    setLogSet((prev) => {
+      const next = new Set(prev);
+      if (next.has(cell.key)) next.delete(cell.key);
+      else next.add(cell.key);
+      return next;
+    });
+    onToggleDay(habit.id, cell.key);
   }
 
   return (
@@ -189,21 +204,30 @@ export function HabitDetailPanel({ habit, onClose, onEdit }: Props) {
               {DOW_LABELS.map((d) => (
                 <span key={d} className="hb-cal-dow">{d}</span>
               ))}
-              {cells.map((c) => (
-                <div
-                  key={c.key}
-                  className={
-                    "hb-cal-cell" +
-                    (c.inMonth ? "" : " is-out") +
-                    (c.isToday ? " is-today" : "")
-                  }
-                >
-                  <span className="hb-cal-num">{c.dayNum}</span>
-                  <span className={"hb-cal-mark" + (c.checked ? " is-on" : "")}>
-                    {c.checked && <IconCheck size={13} />}
-                  </span>
-                </div>
-              ))}
+              {cells.map((c) => {
+                const clickable = c.inMonth && !c.isFuture;
+                return (
+                  <button
+                    key={c.key}
+                    type="button"
+                    disabled={!clickable}
+                    onClick={() => toggleDay(c)}
+                    className={
+                      "hb-cal-cell" +
+                      (c.inMonth ? "" : " is-out") +
+                      (c.isToday ? " is-today" : "") +
+                      (clickable ? " is-clickable" : "")
+                    }
+                    aria-pressed={clickable ? c.checked : undefined}
+                    aria-label={`${c.dayNum} — ${c.checked ? "coché" : "non coché"}`}
+                  >
+                    <span className="hb-cal-num">{c.dayNum}</span>
+                    <span className={"hb-cal-mark" + (c.checked ? " is-on" : "")}>
+                      {c.checked && <IconCheck size={13} />}
+                    </span>
+                  </button>
+                );
+              })}
             </div>
           </div>
 

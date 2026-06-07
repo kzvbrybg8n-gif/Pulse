@@ -72,6 +72,7 @@ export function HabitModal({ initialHabit, userId, onSave, onDelete, onClose }: 
         streak: 0,
         checkedToday: false,
         weekDots: [false, false, false, false, false, false, false],
+        logDays: [],
         totalDone: 0,
         createdAt: now,
       });

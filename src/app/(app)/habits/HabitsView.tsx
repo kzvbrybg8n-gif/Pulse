@@ -9,6 +9,7 @@ import { HabitWeekStrip } from "@/components/habits/HabitWeekStrip";
 import { HabitDetailPanel } from "@/components/habits/HabitDetailPanel";
 import { createClient } from "@/lib/supabase/client";
 import { localDateStr } from "@/lib/habits/streak";
+import { deriveHabitFields } from "@/lib/habits/fromDb";
 import type { Habit } from "@/lib/types";
 
 const TODAY_FMT = new Intl.DateTimeFormat("fr-FR", {
@@ -20,22 +21,20 @@ const TODAY_FMT = new Intl.DateTimeFormat("fr-FR", {
 
 type ModalTarget = Habit | "new" | null;
 
-function optimisticToggle(habit: Habit): Habit {
-  const newChecked = !habit.checkedToday;
-  const newDots = [...habit.weekDots];
-  newDots[6] = newChecked;
-
-  let newStreak = habit.streak;
-  if (habit.period === "day") {
-    if (newChecked) {
-      // Yesterday (index 5) was checked → extend streak; otherwise start at 1
-      newStreak = habit.weekDots[5] ? habit.streak + 1 : 1;
-    } else {
-      newStreak = Math.max(0, habit.streak - 1);
-    }
-  }
-
-  return { ...habit, checkedToday: newChecked, weekDots: newDots, streak: newStreak };
+/**
+ * Renvoie l'habitude avec `day` ajouté ou retiré de ses jours cochés, tous les
+ * champs dérivés (série, points de la semaine, total) étant recalculés depuis
+ * la liste à jour. Utilisé pour les mises à jour optimistes et la synchro Realtime.
+ */
+function withDayToggled(habit: Habit, day: string, checked: boolean): Habit {
+  const set = new Set(habit.logDays);
+  if (checked) set.add(day);
+  else set.delete(day);
+  const logDays = [...set];
+  return {
+    ...habit,
+    ...deriveHabitFields(logDays, new Date(), habit.period, habit.targetPerPeriod),
+  };
 }
 
 type Props = {
@@ -60,7 +59,6 @@ export function HabitsView({ initialHabits, userId }: Props) {
 
   // Synchro Realtime — changements depuis un autre appareil ou onglet
   useEffect(() => {
-    const todayStr = localDateStr(new Date());
     const channel = supabase
       .channel(`habits:${userId}`)
       .on(
@@ -76,12 +74,9 @@ export function HabitsView({ initialHabits, userId }: Props) {
         { event: "INSERT", schema: "public", table: "habit_logs", filter: `user_id=eq.${userId}` },
         (payload) => {
           const row = payload.new as { habit_id: string; day: string };
-          if (row.day !== todayStr) return;
-          // Marquer l'habitude comme cochée localement (autre appareil a coché)
+          // Répercute la coche d'un jour quelconque (idempotent vis-à-vis de nos propres écritures)
           setHabits((hs) =>
-            hs.map((h) =>
-              h.id === row.habit_id ? { ...h, checkedToday: true, weekDots: [...h.weekDots.slice(0, 6), true] } : h,
-            ),
+            hs.map((h) => (h.id === row.habit_id ? withDayToggled(h, row.day, true) : h)),
           );
         },
       )
@@ -90,11 +85,8 @@ export function HabitsView({ initialHabits, userId }: Props) {
         { event: "DELETE", schema: "public", table: "habit_logs", filter: `user_id=eq.${userId}` },
         (payload) => {
           const row = payload.old as { habit_id: string; day: string };
-          if (row.day !== todayStr) return;
           setHabits((hs) =>
-            hs.map((h) =>
-              h.id === row.habit_id ? { ...h, checkedToday: false, weekDots: [...h.weekDots.slice(0, 6), false] } : h,
-            ),
+            hs.map((h) => (h.id === row.habit_id ? withDayToggled(h, row.day, false) : h)),
           );
         },
       )
@@ -105,13 +97,22 @@ export function HabitsView({ initialHabits, userId }: Props) {
     };
   }, [supabase, userId, router]);
 
-  async function toggleCheckin(id: string) {
+  /**
+   * Coche / décoche une habitude pour un jour donné (aujourd'hui par défaut).
+   * Autorise les jours passés (rattrapage d'oubli, validation a posteriori),
+   * mais jamais le futur.
+   */
+  async function toggleCheckin(id: string, day?: string) {
     const habit = habits.find((h) => h.id === id);
     if (!habit) return;
-    const wasChecked = habit.checkedToday;
-    const todayStr = localDateStr(new Date());
 
-    setHabits((hs) => hs.map((h) => (h.id === id ? optimisticToggle(h) : h)));
+    const todayStr = localDateStr(new Date());
+    const targetDay = day ?? todayStr;
+    if (targetDay > todayStr) return; // pas de coche dans le futur
+
+    const wasChecked = habit.logDays.includes(targetDay);
+
+    setHabits((hs) => hs.map((h) => (h.id === id ? withDayToggled(h, targetDay, !wasChecked) : h)));
 
     let err: { message: string } | null = null;
 
@@ -119,7 +120,7 @@ export function HabitsView({ initialHabits, userId }: Props) {
       const { error } = await supabase
         .from("habit_logs")
         .upsert(
-          { user_id: userId, habit_id: id, day: todayStr },
+          { user_id: userId, habit_id: id, day: targetDay },
           { onConflict: "habit_id,day" },
         );
       err = error;
@@ -128,7 +129,7 @@ export function HabitsView({ initialHabits, userId }: Props) {
         .from("habit_logs")
         .delete()
         .eq("habit_id", id)
-        .eq("day", todayStr);
+        .eq("day", targetDay);
       err = error;
     }
 
@@ -280,6 +281,7 @@ export function HabitsView({ initialHabits, userId }: Props) {
           habit={detailHabit}
           onClose={() => setDetailId(null)}
           onEdit={setModalTarget}
+          onToggleDay={toggleCheckin}
         />
       )}
 
