@@ -13,8 +13,11 @@ import {
   IconMore,
   IconPencil,
   IconPlus,
+  IconRepeat,
   IconSearch,
+  IconSettings,
   IconSun,
+  IconTimer,
   IconTrash,
   IconX,
 } from "@/components/icons";
@@ -22,7 +25,6 @@ import { FilterPanel } from "@/components/ui/FilterPanel";
 import { createClient } from "@/lib/supabase/client";
 import { getAuthClaims } from "@/lib/supabase/user";
 import { loadFilters, type FilterSpec } from "@/lib/filters";
-import { FOOT_NAV } from "@/lib/mocks/today";
 
 /* ── Types ──────────────────────────────────────────────── */
 
@@ -267,6 +269,12 @@ export function Sidebar() {
     { id: "all", label: "Toutes les tâches", Icon: IconInbox, href: "/all", count: data?.allCount ?? 0 },
   ];
 
+  const appLinks = [
+    { id: "habits", label: "Habitudes", Icon: IconRepeat, href: "/habits" },
+    { id: "focus", label: "Focus", Icon: IconTimer, href: "/focus" },
+    { id: "countdowns", label: "Compte à rebours", Icon: IconCalendarDays, href: "/countdowns" },
+  ];
+
   const tagsWithTasks = (data?.tags ?? []).filter((t) => t.count > 0);
 
   return (
@@ -279,6 +287,23 @@ export function Sidebar() {
         <IconSearch size={16} />
         <input aria-label="Rechercher une tâche" placeholder="Rechercher une tâche…" />
       </div>
+
+      <div className="pk-side-lab">Application</div>
+      <nav className="pk-nav">
+        {appLinks.map((v) => {
+          const isActive = pathname.startsWith(v.href);
+          return (
+            <Link
+              key={v.id}
+              href={v.href}
+              className={"pk-navitem" + (isActive ? " active" : "")}
+            >
+              <v.Icon size={18} />
+              <span className="t">{v.label}</span>
+            </Link>
+          );
+        })}
+      </nav>
 
       <div className="pk-side-lab">Listes intelligentes</div>
       <nav className="pk-nav">
@@ -573,45 +598,14 @@ export function Sidebar() {
       ))}
 
       <div className="pk-side-foot">
-        {FOOT_NAV.map((v) => {
-          const href =
-            v.id === "habits" ? "/habits"
-            : v.id === "focus" ? "/focus"
-            : v.id === "settings" ? "/settings"
-            : null;
-          const isActive = href ? pathname.startsWith(href) : false;
-          if (href) {
-            return (
-              <Link
-                key={v.id}
-                href={href}
-                className={"pk-footitem" + (isActive ? " active" : "")}
-              >
-                <v.Icon size={18} />
-                <span className="t">{v.label}</span>
-              </Link>
-            );
-          }
-          return (
-            <button
-              key={v.id}
-              type="button"
-              className={"pk-footitem" + (isActive ? " active" : "")}
-            >
-              <v.Icon size={18} />
-              <span className="t">{v.label}</span>
-            </button>
-          );
-        })}
         <Link
-          href="/countdowns"
+          href="/settings"
           className={
-            "pk-footitem" +
-            (pathname.startsWith("/countdowns") ? " active" : "")
+            "pk-footitem" + (pathname.startsWith("/settings") ? " active" : "")
           }
         >
-          <IconCalendarDays size={18} />
-          <span className="t">Compte à rebours</span>
+          <IconSettings size={18} />
+          <span className="t">Réglages</span>
         </Link>
         <button type="button" className="pk-footitem" onClick={signOut}>
           <IconX size={18} />
