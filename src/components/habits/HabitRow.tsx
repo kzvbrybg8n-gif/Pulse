@@ -15,6 +15,7 @@ const PERIOD_LABELS: Record<string, string> = {
 const GOLD_STREAK_THRESHOLD = 21;
 
 const DOT_FMT = new Intl.DateTimeFormat("fr-FR", { weekday: "long", day: "numeric", month: "long" });
+const DOW_INITIALS = ["L", "M", "M", "J", "V", "S", "D"]; // lundi → dimanche
 
 type Props = {
   habit: Habit;
@@ -33,20 +34,27 @@ type Props = {
 function MiniCal({ days, onToggleDay }: { days: boolean[]; onToggleDay: (day: string) => void }) {
   const today = new Date();
   return (
-    <div className="hb-minical">
+    <div className="hb-minical" aria-label="Cocher un jour passé">
       {days.map((done, i) => {
         const d = new Date(today);
         d.setDate(today.getDate() - (6 - i));
         const dayStr = localDateStr(d);
+        const isToday = i === 6;
+        const dowInitial = DOW_INITIALS[(d.getDay() + 6) % 7];
+        const label = DOT_FMT.format(d);
         return (
           <button
             key={i}
             type="button"
-            className={"hb-dot" + (done ? " done" : " missed")}
+            className={"hb-day" + (isToday ? " is-today" : "")}
             onClick={() => onToggleDay(dayStr)}
             aria-pressed={done}
-            aria-label={`${done ? "Décocher" : "Cocher"} — ${DOT_FMT.format(d)}`}
-          />
+            aria-label={`${done ? "Décocher" : "Cocher"} — ${label}`}
+            title={`${done ? "Décocher" : "Cocher"} ${label}`}
+          >
+            <span className="hb-day-dow">{dowInitial}</span>
+            <span className={"hb-dot" + (done ? " done" : " missed")} />
+          </button>
         );
       })}
     </div>
