@@ -1,4 +1,5 @@
 import type { Priority } from "@/lib/types";
+import { MOMENT_HOUR, nearestMoment, type Moment } from "@/lib/tasks/moment";
 
 export type ParseResult = {
   title: string;
@@ -109,6 +110,31 @@ function findTimeAfter(
   return { hours, minutes, len: m[0].length };
 }
 
+// Moment de la journée (matin / midi / soir) — après une date, ou « ce soir ».
+// L'heure précise n'est pas conservée : on retient le moment le plus proche.
+const MOMENT_AFTER_RE =
+  /^\s*(?:ce\s+|cet\s+|le\s+|à\s+|en\s+)?(matin(?:ée)?|midi|soir(?:ée)?|après[-\s]midi)(?![\wàâéèêëîïôûùüç])/i;
+
+function wordToMoment(word: string): Moment {
+  const w = word.toLowerCase();
+  if (w.startsWith("matin")) return "matin";
+  if (w.startsWith("soir")) return "soir";
+  return "midi"; // midi, après-midi
+}
+
+function findMomentAfter(
+  text: string,
+  from: number,
+): { moment: Moment; len: number } | null {
+  const m = MOMENT_AFTER_RE.exec(text.slice(from));
+  if (!m) return null;
+  return { moment: wordToMoment(m[1]), len: m[0].length };
+}
+
+// « ce soir / cet après-midi / ce matin » sans mot-clé de date ⇒ aujourd'hui.
+const STANDALONE_MOMENT_RE =
+  /(?:^|[^\wàâéèêëîïôûùüç])(ce|cet)\s+(matin(?:ée)?|midi|soir(?:ée)?|après[-\s]midi)(?![\wàâéèêëîïôûùüç])/i;
+
 // Mots-clés de date dans l’ordre de recherche
 // Note : apostrophe droite U+0027 (le texte d’entrée est normalisé avant le matching)
 const DATE_KEYWORDS = [
@@ -145,14 +171,39 @@ function extractDate(
       base = nextWeekday(now, DAY_INDEX[kw] ?? 1);
     }
 
-    const timeInfo = findTimeAfter(text, kwIdx + kw.length);
-    base.setHours(timeInfo?.hours ?? 0, timeInfo?.minutes ?? 0, 0, 0);
+    // Après la date : soit un moment (« demain soir »), soit une heure que
+    // l'on rattache au moment le plus proche (« demain 14h » → midi).
+    let consumed = 0;
+    const momentInfo = findMomentAfter(text, kwIdx + kw.length);
+    if (momentInfo) {
+      base.setHours(MOMENT_HOUR[momentInfo.moment], 0, 0, 0);
+      consumed = momentInfo.len;
+    } else {
+      const timeInfo = findTimeAfter(text, kwIdx + kw.length);
+      if (timeInfo) {
+        const moment = nearestMoment(timeInfo.hours, timeInfo.minutes);
+        base.setHours(MOMENT_HOUR[moment], 0, 0, 0);
+        consumed = timeInfo.len;
+      } else {
+        base.setHours(0, 0, 0, 0); // date seule, pas de moment
+      }
+    }
 
-    const matchEnd = kwIdx + kw.length + (timeInfo?.len ?? 0);
+    const matchEnd = kwIdx + kw.length + consumed;
     const cleaned = (text.slice(0, kwIdx) + text.slice(matchEnd))
       .replace(/\s+/g, " ")
       .trim();
 
+    return { due_at: base.toISOString(), cleaned };
+  }
+
+  // Pas de mot-clé de date : « ce soir / cet après-midi » ⇒ aujourd'hui.
+  const standalone = STANDALONE_MOMENT_RE.exec(text);
+  if (standalone) {
+    const moment = wordToMoment(standalone[2]);
+    const base = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+    base.setHours(MOMENT_HOUR[moment], 0, 0, 0);
+    const cleaned = text.replace(standalone[0], " ").replace(/\s+/g, " ").trim();
     return { due_at: base.toISOString(), cleaned };
   }
 

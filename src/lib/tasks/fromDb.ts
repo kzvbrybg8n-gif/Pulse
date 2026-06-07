@@ -1,4 +1,5 @@
 import type { Priority, Subtask, Task } from "@/lib/types";
+import { MOMENT_LABEL, momentFromIso } from "@/lib/tasks/moment";
 
 /**
  * Forme d'une ligne `tasks` enrichie des jointures attendues par la vue
@@ -44,16 +45,13 @@ function startOfDay(d: Date): Date {
   return new Date(d.getFullYear(), d.getMonth(), d.getDate());
 }
 
-function hhmm(d: Date): string {
-  return `${String(d.getHours()).padStart(2, "0")}:${String(d.getMinutes()).padStart(2, "0")}`;
-}
-
 /**
- * Étiquette d'échéance lisible (formateur minimal de Phase 3) :
- *  - aujourd'hui  → "14:00"
- *  - hier         → "hier · 18:00"
- *  - demain       → "demain · 09:00"
- *  - autre date   → "ven. 5 juin · 14:00"
+ * Étiquette d'échéance lisible. L'heure précise est remplacée par le moment
+ * de la journée (Matin / Midi / Soir) ; une date seule n'affiche pas de moment.
+ *  - aujourd'hui  → "Matin" (ou "aujourd'hui" si date seule)
+ *  - hier         → "hier · Soir"
+ *  - demain       → "demain · Matin"
+ *  - autre date   → "ven. 5 juin · Matin"
  * Le préfixe « en retard · » est ajouté par TaskMeta selon `late`.
  */
 export function formatDueLabel(dueAt: string | null, now: Date): string | null {
@@ -63,12 +61,15 @@ export function formatDueLabel(dueAt: string | null, now: Date): string | null {
   const dueDay = startOfDay(due).getTime();
   const dayMs = 86_400_000;
   const diffDays = Math.round((dueDay - today) / dayMs);
-  const time = hhmm(due);
 
-  if (diffDays === 0) return time;
-  if (diffDays === -1) return `hier · ${time}`;
-  if (diffDays === 1) return `demain · ${time}`;
-  return `${WEEKDAYS[due.getDay()]} ${due.getDate()} ${MONTHS[due.getMonth()]} · ${time}`;
+  const moment = momentFromIso(dueAt);
+  const momentLabel = moment ? MOMENT_LABEL[moment] : null;
+  const withMoment = (base: string) => (momentLabel ? `${base} · ${momentLabel}` : base);
+
+  if (diffDays === 0) return momentLabel ?? "aujourd'hui";
+  if (diffDays === -1) return withMoment("hier");
+  if (diffDays === 1) return withMoment("demain");
+  return withMoment(`${WEEKDAYS[due.getDay()]} ${due.getDate()} ${MONTHS[due.getMonth()]}`);
 }
 
 function toPriority(prio: number): Priority {
@@ -86,7 +87,14 @@ export function taskFromRow(row: TaskRow, now: Date): Task {
     .filter((n): n is string => Boolean(n));
 
   const isDone = row.status === "done";
-  const late = Boolean(row.due_at && new Date(row.due_at) < now && !isDone);
+  // Avec les moments (heure non significative), le « retard » se juge au jour :
+  // une tâche n'est en retard que si son jour d'échéance est antérieur à
+  // aujourd'hui. Évite qu'une tâche du matin paraisse en retard l'après-midi.
+  const late = Boolean(
+    row.due_at &&
+      startOfDay(new Date(row.due_at)).getTime() < startOfDay(now).getTime() &&
+      !isDone,
+  );
 
   return {
     id: row.id,

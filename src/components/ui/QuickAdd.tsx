@@ -15,6 +15,13 @@ import { RecurrencePicker } from "@/components/ui/RecurrencePicker";
 import { ensurePushSubscribed } from "@/components/ui/PushManager";
 import { createClient } from "@/lib/supabase/client";
 import { formatDueLabel } from "@/lib/tasks/fromDb";
+import {
+  MOMENTS,
+  MOMENT_LABEL,
+  isoWithMoment,
+  momentFromIso,
+  type Moment,
+} from "@/lib/tasks/moment";
 import { describeRecurrence } from "@/lib/recurrence";
 import { parseQuickAdd } from "@/lib/parseQuickAdd";
 import type { Priority, Task } from "@/lib/types";
@@ -45,11 +52,20 @@ function localToIso(local: string): string | null {
   return new Date(local).toISOString();
 }
 
-/** ISO UTC → valeur d'input datetime-local (heure locale). */
-function isoToLocal(iso: string): string {
+/** Échéance en retard ? Jugé au jour (l'heure n'est qu'un moment). */
+function isLateDay(iso: string | null, now: Date): boolean {
+  if (!iso) return false;
+  const d = new Date(iso);
+  const dueDay = new Date(d.getFullYear(), d.getMonth(), d.getDate()).getTime();
+  const today = new Date(now.getFullYear(), now.getMonth(), now.getDate()).getTime();
+  return dueDay < today;
+}
+
+/** ISO UTC → valeur d'input date (heure locale, "YYYY-MM-DD"). */
+function isoToDateInput(iso: string): string {
   const d = new Date(iso);
   const pad = (n: number) => String(n).padStart(2, "0");
-  return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`;
+  return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
 }
 
 /** Valeurs effectives de la tâche : le manuel l'emporte sur le détecté. */
@@ -100,7 +116,8 @@ export function QuickAdd({ userId, listId = null, onAdd, defaultValue = "" }: Pr
   // Réglages manuels — `null`/`false` = « laisser le parsing décider ».
   const [prioOverride, setPrioOverride] = useState<Priority | null>(null);
   const [dueSet, setDueSet] = useState(false);
-  const [dueValue, setDueValue] = useState("");
+  const [dueValue, setDueValue] = useState(""); // "YYYY-MM-DD"
+  const [dueMoment, setDueMoment] = useState<Moment | null>(null);
   const [recurValue, setRecurValue] = useState("");
   const [remindSet, setRemindSet] = useState(false);
   const [remindValue, setRemindValue] = useState("");
@@ -115,13 +132,17 @@ export function QuickAdd({ userId, listId = null, onAdd, defaultValue = "" }: Pr
     const tags = Array.from(new Set([...parsed.tags, ...manualTags]));
     return {
       title: parsed.title,
-      dueIso: dueSet ? localToIso(dueValue) : parsed.due_at,
+      dueIso: dueSet
+        ? dueValue
+          ? isoWithMoment(new Date(`${dueValue}T00:00:00`), dueMoment)
+          : null
+        : parsed.due_at,
       prio: prioOverride ?? parsed.prio,
       tags,
       recur: recurValue.trim() || null,
       remindIso: remindSet ? localToIso(remindValue) : null,
     };
-  }, [parsed, manualTags, dueSet, dueValue, prioOverride, recurValue, remindSet, remindValue]);
+  }, [parsed, manualTags, dueSet, dueValue, dueMoment, prioOverride, recurValue, remindSet, remindValue]);
 
   const active = text.trim().length > 0;
   const now = new Date();
@@ -132,6 +153,7 @@ export function QuickAdd({ userId, listId = null, onAdd, defaultValue = "" }: Pr
     setPrioOverride(null);
     setDueSet(false);
     setDueValue("");
+    setDueMoment(null);
     setRecurValue("");
     setRemindSet(false);
     setRemindValue("");
@@ -214,7 +236,7 @@ export function QuickAdd({ userId, listId = null, onAdd, defaultValue = "" }: Pr
         prio: eff.prio,
         due: formatDueLabel(eff.dueIso, now),
         dueAt: eff.dueIso,
-        late: Boolean(eff.dueIso && new Date(eff.dueIso) < now),
+        late: isLateDay(eff.dueIso, now),
         tags: eff.tags,
         recur: eff.recur,
         reminder: reminderOk,
@@ -286,7 +308,8 @@ export function QuickAdd({ userId, listId = null, onAdd, defaultValue = "" }: Pr
           }
           onClick={() => {
             if (eff.dueIso && !dueSet) {
-              setDueValue(isoToLocal(eff.dueIso));
+              setDueValue(isoToDateInput(eff.dueIso));
+              setDueMoment(momentFromIso(eff.dueIso));
               setDueSet(true);
             }
             togglePanel("due");
@@ -362,7 +385,7 @@ export function QuickAdd({ userId, listId = null, onAdd, defaultValue = "" }: Pr
       {panel === "due" && (
         <div className="pk-qa-panel">
           <input
-            type="datetime-local"
+            type="date"
             className="pd-due-input"
             value={dueValue}
             autoFocus
@@ -371,6 +394,21 @@ export function QuickAdd({ userId, listId = null, onAdd, defaultValue = "" }: Pr
               setDueSet(true);
             }}
           />
+          <div className="pd-moment-row" role="group" aria-label="Moment de la journée">
+            {MOMENTS.map((m) => (
+              <button
+                key={m}
+                type="button"
+                className={"pd-moment-btn" + (dueMoment === m ? " sel" : "")}
+                onClick={() => {
+                  setDueMoment((cur) => (cur === m ? null : m));
+                  setDueSet(true);
+                }}
+              >
+                {MOMENT_LABEL[m]}
+              </button>
+            ))}
+          </div>
           {dueSet && (
             <button
               type="button"
@@ -378,6 +416,7 @@ export function QuickAdd({ userId, listId = null, onAdd, defaultValue = "" }: Pr
               onClick={() => {
                 setDueSet(false);
                 setDueValue("");
+                setDueMoment(null);
               }}
             >
               Auto

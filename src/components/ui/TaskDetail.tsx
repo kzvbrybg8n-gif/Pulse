@@ -21,6 +21,14 @@ import { RecurrencePicker } from "@/components/ui/RecurrencePicker";
 import { ensurePushSubscribed } from "@/components/ui/PushManager";
 import { createClient } from "@/lib/supabase/client";
 import { describeRecurrence } from "@/lib/recurrence";
+import { formatDueLabel } from "@/lib/tasks/fromDb";
+import {
+  MOMENTS,
+  MOMENT_LABEL,
+  isoWithMoment,
+  momentFromIso,
+  type Moment,
+} from "@/lib/tasks/moment";
 import type { Priority, Subtask, Task } from "@/lib/types";
 
 /* ── Types internes ──────────────────────────────────────── */
@@ -72,6 +80,26 @@ function formatDueDisplay(iso: string | null): string {
   }).format(d);
 }
 
+/** Échéance affichée comme date + moment (sans heure précise). */
+function formatDueMoment(iso: string | null): string {
+  if (!iso) return "";
+  const d = new Date(iso);
+  const date = new Intl.DateTimeFormat("fr-FR", {
+    weekday: "short",
+    day: "numeric",
+    month: "short",
+  }).format(d);
+  const moment = momentFromIso(iso);
+  return moment ? `${date} · ${MOMENT_LABEL[moment]}` : date;
+}
+
+/** ISO → "YYYY-MM-DD" (heure locale) pour un <input type="date">. */
+function isoToDateInput(iso: string): string {
+  const d = new Date(iso);
+  const pad = (n: number) => String(n).padStart(2, "0");
+  return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
+}
+
 /* ── Composant principal ──────────────────────────────────── */
 
 type Props = {
@@ -92,7 +120,8 @@ export function TaskDetail({ taskId, userId, onClose, onUpdate, onDelete }: Prop
   const [editTitle, setEditTitle] = useState("");
   const [editNote, setEditNote] = useState("");
   const [editingDue, setEditingDue] = useState(false);
-  const [editDue, setEditDue] = useState("");
+  const [editDueDate, setEditDueDate] = useState("");
+  const [editDueMoment, setEditDueMoment] = useState<Moment | null>(null);
   const [editingRemind, setEditingRemind] = useState(false);
   const [editRemind, setEditRemind] = useState("");
   const [editingRecur, setEditingRecur] = useState(false);
@@ -197,11 +226,14 @@ export function TaskDetail({ taskId, userId, onClose, onUpdate, onDelete }: Prop
 
   async function saveDueAt() {
     if (!detail) return;
-    const iso = editDue ? new Date(editDue).toISOString() : null;
+    // La date est en heure locale ; le moment fixe l'heure canonique (ou minuit).
+    const iso = editDueDate
+      ? isoWithMoment(new Date(`${editDueDate}T00:00:00`), editDueMoment)
+      : null;
     await supabase.from("tasks").update({ due_at: iso }).eq("id", detail.id);
     setDetail((d) => d && { ...d, due_at: iso });
     setEditingDue(false);
-    onUpdate(detail.id, { due: iso ? formatDueDisplay(iso) : null, late: false });
+    onUpdate(detail.id, { due: iso ? formatDueLabel(iso, new Date()) : null, late: false });
   }
 
   async function saveNote() {
@@ -524,26 +556,56 @@ export function TaskDetail({ taskId, userId, onClose, onUpdate, onDelete }: Prop
               <span className="pd-prop-ico"><IconCalendar size={15} /></span>
               <span className="pd-prop-lbl">Échéance</span>
               {editingDue ? (
-                <input
-                  type="datetime-local"
-                  className="pd-due-input"
-                  value={editDue}
-                  autoFocus
-                  onChange={(e) => setEditDue(e.target.value)}
-                  onBlur={() => void saveDueAt()}
-                />
+                <div className="pd-due-edit">
+                  <input
+                    type="date"
+                    className="pd-due-input"
+                    value={editDueDate}
+                    autoFocus
+                    onChange={(e) => setEditDueDate(e.target.value)}
+                  />
+                  <div className="pd-moment-row" role="group" aria-label="Moment de la journée">
+                    {MOMENTS.map((m) => (
+                      <button
+                        key={m}
+                        type="button"
+                        className={"pd-moment-btn" + (editDueMoment === m ? " sel" : "")}
+                        onClick={() => setEditDueMoment((cur) => (cur === m ? null : m))}
+                      >
+                        {MOMENT_LABEL[m]}
+                      </button>
+                    ))}
+                  </div>
+                  <div className="pd-due-actions">
+                    <button type="button" className="pd-due-ok" onClick={() => void saveDueAt()}>
+                      OK
+                    </button>
+                    <button
+                      type="button"
+                      className="pd-due-clear"
+                      onClick={() => {
+                        setEditDueDate("");
+                        setEditDueMoment(null);
+                        void saveDueAt();
+                      }}
+                    >
+                      Effacer
+                    </button>
+                  </div>
+                </div>
               ) : (
                 <span
                   className={"pd-prop-val " + (detail.due_at ? "mono" : "faint")}
                   role="button"
                   tabIndex={0}
                   onClick={() => {
-                    setEditDue(detail.due_at ? isoToDatetimeLocal(detail.due_at) : "");
+                    setEditDueDate(detail.due_at ? isoToDateInput(detail.due_at) : "");
+                    setEditDueMoment(momentFromIso(detail.due_at));
                     setEditingDue(true);
                   }}
                   onKeyDown={(e) => e.key === "Enter" && setEditingDue(true)}
                 >
-                  {detail.due_at ? formatDueDisplay(detail.due_at) : "Aucune"}
+                  {detail.due_at ? formatDueMoment(detail.due_at) : "Aucune"}
                 </span>
               )}
             </div>

@@ -14,7 +14,8 @@ describe("exemples SPEC.md", () => {
   it("Rendre le mémo demain 14h !! #travail", () => {
     const r = parseQuickAdd("Rendre le mémo demain 14h !! #travail", NOW);
     expect(r.title).toBe("Rendre le mémo");
-    expect(r.due_at).toBe(due(2026, 5, 31, 14, 0));
+    // 14h est rattaché au moment le plus proche : midi (13h).
+    expect(r.due_at).toBe(due(2026, 5, 31, 13, 0));
     expect(r.prio).toBe(2);
     expect(r.tags).toEqual(["travail"]);
   });
@@ -127,22 +128,29 @@ describe("dates", () => {
   });
 });
 
-// ─── Heure ───────────────────────────────────────────────────────────────────
+// ─── Heure → moment ────────────────────────────────────────────────────────────
+// On ne conserve plus l'heure précise : elle est ramenée au moment le plus
+// proche (matin 9h / midi 13h / soir 19h).
 
-describe("heure", () => {
-  it("NNh → heures entières", () => {
+describe("heure rattachée au moment", () => {
+  it("14h → midi (13h)", () => {
     const r = parseQuickAdd("Appel demain 14h", NOW);
-    expect(r.due_at).toBe(due(2026, 5, 31, 14, 0));
+    expect(r.due_at).toBe(due(2026, 5, 31, 13, 0));
   });
 
-  it("NNhNN → heures et minutes", () => {
+  it("9h30 → matin (9h)", () => {
     const r = parseQuickAdd("Rendez-vous demain 9h30", NOW);
-    expect(r.due_at).toBe(due(2026, 5, 31, 9, 30));
+    expect(r.due_at).toBe(due(2026, 5, 31, 9, 0));
   });
 
-  it("NN:NN → format colon", () => {
+  it("14:30 → midi (13h)", () => {
     const r = parseQuickAdd("Réunion demain 14:30", NOW);
-    expect(r.due_at).toBe(due(2026, 5, 31, 14, 30));
+    expect(r.due_at).toBe(due(2026, 5, 31, 13, 0));
+  });
+
+  it("20h → soir (19h)", () => {
+    const r = parseQuickAdd("Dîner demain 20h", NOW);
+    expect(r.due_at).toBe(due(2026, 5, 31, 19, 0));
   });
 
   it("heure seule sans date → pas d'échéance", () => {
@@ -150,6 +158,43 @@ describe("heure", () => {
     const r = parseQuickAdd("Tâche 14h", NOW);
     expect(r.due_at).toBeNull();
     expect(r.title).toBe("Tâche 14h");
+  });
+});
+
+// ─── Moments (matin / midi / soir) ──────────────────────────────────────────────
+
+describe("moments", () => {
+  it("demain soir → 19h, titre nettoyé", () => {
+    const r = parseQuickAdd("Réviser demain soir", NOW);
+    expect(r.due_at).toBe(due(2026, 5, 31, 19, 0));
+    expect(r.title).toBe("Réviser");
+  });
+
+  it("demain matin → 9h", () => {
+    const r = parseQuickAdd("Courir demain matin", NOW);
+    expect(r.due_at).toBe(due(2026, 5, 31, 9, 0));
+  });
+
+  it("lundi midi → 13h", () => {
+    const r = parseQuickAdd("Déjeuner lundi midi", NOW);
+    expect(r.due_at).toBe(due(2026, 6, 1, 13, 0));
+  });
+
+  it("après-midi → midi (13h)", () => {
+    const r = parseQuickAdd("Sieste demain après-midi", NOW);
+    expect(r.due_at).toBe(due(2026, 5, 31, 13, 0));
+  });
+
+  it("ce soir (sans date) → aujourd'hui 19h", () => {
+    const r = parseQuickAdd("Appeler maman ce soir", NOW);
+    expect(r.due_at).toBe(due(2026, 5, 30, 19, 0));
+    expect(r.title).toBe("Appeler maman");
+  });
+
+  it("cet après-midi (sans date) → aujourd'hui 13h", () => {
+    const r = parseQuickAdd("Ranger cet après-midi", NOW);
+    expect(r.due_at).toBe(due(2026, 5, 30, 13, 0));
+    expect(r.title).toBe("Ranger");
   });
 });
 
