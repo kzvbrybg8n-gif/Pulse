@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, type ReactNode } from "react";
+import { useEffect, useRef, useState, type ReactNode } from "react";
 import { IconCheck, IconPlus, IconRepeat } from "@/components/icons";
 import { QuickAdd } from "@/components/ui/QuickAdd";
 import { TaskDetail } from "@/components/ui/TaskDetail";
@@ -161,6 +161,71 @@ export function TodayView({ initialOverdue, initialToday, initialHabits, dateLab
       console.error("Échec de l'enregistrement de l'habitude", error);
     }
   }
+
+  // Re-tri « en retard / aujourd'hui » lorsque le jour local change.
+  // Le groupage initial vient du serveur (à l'ouverture de la page) ; si la
+  // PWA/onglet reste ouverte après minuit, les tâches d'hier doivent passer
+  // d'« Aujourd'hui » à « En retard ». On re-trie d'après l'heure locale réelle.
+  const overdueRef = useRef(overdue);
+  const todayRef = useRef(today);
+  overdueRef.current = overdue;
+  todayRef.current = today;
+
+  useEffect(() => {
+    const localDayKey = (d: Date) =>
+      `${d.getFullYear()}-${d.getMonth()}-${d.getDate()}`;
+    let currentDay = localDayKey(new Date());
+
+    function rebucket() {
+      const now = new Date();
+      const todayStart = new Date(
+        now.getFullYear(),
+        now.getMonth(),
+        now.getDate(),
+      ).getTime();
+      const tomorrowStart = todayStart + 86_400_000;
+
+      const all = [...overdueRef.current, ...todayRef.current];
+      const nextOverdue: Task[] = [];
+      const nextToday: Task[] = [];
+
+      for (const t of all) {
+        const dueMs = t.dueAt ? new Date(t.dueAt).getTime() : null;
+        const due = t.dueAt ? formatDueLabel(t.dueAt, now) : t.due;
+
+        if (dueMs !== null && dueMs < todayStart && !t.done) {
+          nextOverdue.push({ ...t, late: true, due });
+        } else if (dueMs === null || (dueMs >= todayStart && dueMs < tomorrowStart)) {
+          nextToday.push({ ...t, late: false, due });
+        }
+        // Échéance future ou tâche passée déjà faite : sortie de cette vue.
+      }
+
+      setOverdue(nextOverdue);
+      setToday(nextToday);
+    }
+
+    function checkDayChange() {
+      const key = localDayKey(new Date());
+      if (key !== currentDay) {
+        currentDay = key;
+        rebucket();
+      }
+    }
+
+    // Correction immédiate d'un éventuel décalage de fuseau au chargement
+    // (le serveur groupe en UTC, le client connaît l'heure locale réelle).
+    rebucket();
+
+    const id = window.setInterval(checkDayChange, 60_000);
+    document.addEventListener("visibilitychange", checkDayChange);
+    window.addEventListener("focus", checkDayChange);
+    return () => {
+      window.clearInterval(id);
+      document.removeEventListener("visibilitychange", checkDayChange);
+      window.removeEventListener("focus", checkDayChange);
+    };
+  }, []);
 
   function handleTaskAdded(task: Task) {
     const exists = (ts: Task[]) => ts.some((t) => t.id === task.id);
