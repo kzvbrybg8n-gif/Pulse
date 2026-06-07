@@ -1,15 +1,17 @@
 "use client";
 
 import { useState, type ReactNode } from "react";
-import { IconPlus } from "@/components/icons";
+import { IconCheck, IconPlus, IconRepeat } from "@/components/icons";
 import { QuickAdd } from "@/components/ui/QuickAdd";
 import { TaskDetail } from "@/components/ui/TaskDetail";
 import { TaskItem } from "@/components/ui/TaskItem";
 import { createClient } from "@/lib/supabase/client";
 import { useRealtimeTasks } from "@/hooks/useRealtimeTasks";
 import { formatDueLabel } from "@/lib/tasks/fromDb";
+import { deriveHabitFields } from "@/lib/habits/fromDb";
+import { localDateStr } from "@/lib/habits/streak";
 import { nextOccurrence, parseRRule } from "@/lib/recurrence";
-import type { Task } from "@/lib/types";
+import type { Habit, Task } from "@/lib/types";
 
 /* ============================================================
    Vue « Aujourd'hui » — Composant Client (interactivité)
@@ -82,19 +84,83 @@ function MobileQuickAddSheet({
   );
 }
 
+/** Ligne d'habitude compacte pour la vue « Aujourd'hui » : nom + bouton de coche. */
+function TodayHabitItem({
+  habit,
+  onToggle,
+}: {
+  habit: Habit;
+  onToggle: (id: string) => void;
+}) {
+  const done = habit.checkedToday;
+  return (
+    <div className={"hb-row" + (done ? " done-row" : "")}>
+      <div className={"hb-icon" + (done ? " done-icon" : "")}>
+        <IconRepeat size={16} />
+      </div>
+      <div className="hb-info">
+        <div className="hb-name">{habit.name}</div>
+      </div>
+      <button
+        type="button"
+        className={"hb-check-btn" + (done ? " done" : "")}
+        onClick={() => onToggle(habit.id)}
+        aria-pressed={done}
+        aria-label={done ? "Décocher pour aujourd'hui" : "Cocher pour aujourd'hui"}
+      >
+        <IconCheck size={13} />
+      </button>
+    </div>
+  );
+}
+
 type Props = {
   initialOverdue: Task[];
   initialToday: Task[];
+  initialHabits: Habit[];
   dateLabel: string;
   userId: string;
 };
 
-export function TodayView({ initialOverdue, initialToday, dateLabel, userId }: Props) {
+export function TodayView({ initialOverdue, initialToday, initialHabits, dateLabel, userId }: Props) {
   const [supabase] = useState(() => createClient());
   const [overdue, setOverdue] = useState<Task[]>(initialOverdue);
   const [today, setToday] = useState<Task[]>(initialToday);
+  const [habits, setHabits] = useState<Habit[]>(initialHabits);
   const [sheetOpen, setSheetOpen] = useState(false);
   const [selectedTaskId, setSelectedTaskId] = useState<string | null>(null);
+
+  // Coche / décoche une habitude pour aujourd'hui (écriture optimiste).
+  async function toggleHabit(id: string) {
+    const habit = habits.find((h) => h.id === id);
+    if (!habit) return;
+
+    const todayStr = localDateStr(new Date());
+    const wasChecked = habit.logDays.includes(todayStr);
+    const nextLogDays = wasChecked
+      ? habit.logDays.filter((d) => d !== todayStr)
+      : [...habit.logDays, todayStr];
+
+    const updated: Habit = {
+      ...habit,
+      ...deriveHabitFields(nextLogDays, new Date(), habit.period, habit.targetPerPeriod),
+    };
+    setHabits((hs) => hs.map((h) => (h.id === id ? updated : h)));
+
+    const { error } = wasChecked
+      ? await supabase.from("habit_logs").delete().eq("habit_id", id).eq("day", todayStr)
+      : await supabase
+          .from("habit_logs")
+          .upsert(
+            { user_id: userId, habit_id: id, day: todayStr },
+            { onConflict: "habit_id,day" },
+          );
+
+    if (error) {
+      setHabits((hs) => hs.map((h) => (h.id === id ? habit : h)));
+      console.error("Échec de l'enregistrement de l'habitude", error);
+    }
+  }
 
   function handleTaskAdded(task: Task) {
     const exists = (ts: Task[]) => ts.some((t) => t.id === task.id);
@@ -253,7 +319,8 @@ export function TodayView({ initialOverdue, initialToday, dateLabel, userId }: P
 
   const remaining =
     overdue.filter((t) => !t.done).length + today.filter((t) => !t.done).length;
-  const isEmpty = overdue.length === 0 && today.length === 0;
+  const hasTasks = overdue.length > 0 || today.length > 0;
+  const isEmpty = !hasTasks && habits.length === 0;
 
   return (
     <>
@@ -296,6 +363,14 @@ export function TodayView({ initialOverdue, initialToday, dateLabel, userId }: P
                       onToggleSub={toggleSub}
                       onEdit={setSelectedTaskId}
                     />
+                  ))}
+                </Section>
+              )}
+
+              {habits.length > 0 && (
+                <Section label="Habitudes">
+                  {habits.map((h) => (
+                    <TodayHabitItem key={h.id} habit={h} onToggle={toggleHabit} />
                   ))}
                 </Section>
               )}

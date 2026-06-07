@@ -131,6 +131,11 @@ export type Habit = {
   name: string;
   targetPerPeriod: number;
   period: HabitPeriod;
+  /**
+   * Jours ciblés pour une habitude hebdomadaire (0 = lundi … 6 = dimanche).
+   * Vide pour les habitudes quotidiennes/mensuelles ou hebdo « x fois / semaine ».
+   */
+  weekdays: number[];
   streak: number;
   checkedToday: boolean;
   weekDots: boolean[]; // index 0 = 6 days ago, index 6 = today

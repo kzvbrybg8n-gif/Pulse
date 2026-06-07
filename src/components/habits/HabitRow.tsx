@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState } from "react";
 import { IconCheck, IconFlame, IconMore, IconPencil, IconRepeat, IconTrash } from "@/components/icons";
 import { localDateStr } from "@/lib/habits/streak";
+import { WEEKDAY_LABELS } from "@/lib/habits/schedule";
 import type { Habit } from "@/lib/types";
 
 const PERIOD_LABELS: Record<string, string> = {
@@ -86,9 +87,11 @@ export function HabitRow({ habit, selected, onToggle, onEdit, onOpen, onDelete }
   const done = habit.checkedToday;
 
   const freqLabel =
-    habit.targetPerPeriod > 1
-      ? `${habit.targetPerPeriod}× / ${PERIOD_LABELS[habit.period]?.toLowerCase()}`
-      : PERIOD_LABELS[habit.period] ?? habit.period;
+    habit.period === "week" && habit.weekdays.length > 0
+      ? [...habit.weekdays].sort((a, b) => a - b).map((d) => WEEKDAY_LABELS[d]).join(" · ")
+      : habit.targetPerPeriod > 1
+        ? `${habit.targetPerPeriod}× / ${PERIOD_LABELS[habit.period]?.toLowerCase()}`
+        : PERIOD_LABELS[habit.period] ?? habit.period;
 
   // Fermeture du menu contextuel au clic extérieur ou sur Échap
   useEffect(() => {

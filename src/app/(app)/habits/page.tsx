@@ -14,7 +14,7 @@ export default async function HabitsPage() {
 
   const { data, error } = await supabase
     .from("habits")
-    .select("id, name, target_per_period, period, created_at, habit_logs(day)")
+    .select("id, name, target_per_period, period, weekdays, created_at, habit_logs(day)")
     .gte("habit_logs.day", windowStartStr)
     .order("created_at", { ascending: true });
 

@@ -6,6 +6,7 @@ export type HabitRow = {
   name: string;
   target_per_period: number;
   period: string;
+  weekdays: number[] | null;
   created_at: string;
   habit_logs: { day: string }[];
 };
@@ -50,6 +51,7 @@ export function habitFromRow(row: HabitRow, today: Date): Habit {
     name: row.name,
     targetPerPeriod: row.target_per_period,
     period,
+    weekdays: row.weekdays ?? [],
     createdAt: row.created_at,
     ...deriveHabitFields(logDays, today, period, row.target_per_period),
   };

@@ -2,6 +2,9 @@ import { createClient } from "@/lib/supabase/server";
 import { getAuthClaims } from "@/lib/supabase/user";
 import type { TaskRow } from "@/lib/tasks/fromDb";
 import { groupToday } from "@/lib/tasks/groupToday";
+import { habitFromRow, type HabitRow } from "@/lib/habits/fromDb";
+import { isHabitDueOn } from "@/lib/habits/schedule";
+import { localDateStr } from "@/lib/habits/streak";
 import { TodayView } from "./TodayView";
 
 /**
@@ -40,6 +43,19 @@ export default async function TodayPage() {
   const rows = (data ?? []) as unknown as TaskRow[];
   const { overdue, today } = groupToday(rows, now);
 
+  // Habitudes à réaliser aujourd'hui — fenêtre de 35 j pour calculer les séries.
+  const habitWindowStart = localDateStr(new Date(now.getTime() - 35 * 86_400_000));
+  const { data: habitData } = await supabase
+    .from("habits")
+    .select("id, name, target_per_period, period, weekdays, created_at, habit_logs(day)")
+    .gte("habit_logs.day", habitWindowStart)
+    .order("created_at", { ascending: true });
+
+  const habitRows = (habitData ?? []) as unknown as HabitRow[];
+  const todayHabits = habitRows
+    .map((r) => habitFromRow(r, now))
+    .filter((h) => isHabitDueOn(h, now));
+
   const user = await getAuthClaims(supabase);
 
   const dateLabel = new Intl.DateTimeFormat("fr-FR", {
@@ -53,6 +69,7 @@ export default async function TodayPage() {
     <TodayView
       initialOverdue={overdue}
       initialToday={today}
+      initialHabits={todayHabits}
       dateLabel={dateLabel}
       userId={user?.id ?? ""}
     />

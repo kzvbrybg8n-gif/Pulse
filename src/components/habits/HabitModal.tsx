@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { IconX } from "@/components/icons";
 import { createClient } from "@/lib/supabase/client";
+import { WEEKDAY_INITIALS, WEEKDAY_LABELS } from "@/lib/habits/schedule";
 import type { Habit, HabitPeriod } from "@/lib/types";
 
 type Props = {
@@ -24,12 +25,26 @@ export function HabitModal({ initialHabit, userId, onSave, onDelete, onClose }: 
   const [name, setName] = useState(initialHabit?.name ?? "");
   const [period, setPeriod] = useState<HabitPeriod>(initialHabit?.period ?? "day");
   const [target, setTarget] = useState(initialHabit?.targetPerPeriod ?? 1);
+  const [weekdays, setWeekdays] = useState<number[]>(initialHabit?.weekdays ?? []);
   const [saving, setSaving] = useState(false);
   const [deleteConfirm, setDeleteConfirm] = useState(false);
   const [errorMsg, setErrorMsg] = useState("");
 
+  // Pour une habitude hebdomadaire à jours précis, l'objectif = nombre de jours.
+  const sortedWeekdays = [...weekdays].sort((a, b) => a - b);
+  const isWeekly = period === "week";
+  const effectiveTarget = isWeekly ? Math.max(1, sortedWeekdays.length) : target;
+  const dbWeekdays = isWeekly && sortedWeekdays.length > 0 ? sortedWeekdays : null;
+  const canSave = name.trim().length > 0 && (!isWeekly || sortedWeekdays.length > 0);
+
+  function toggleWeekday(d: number) {
+    setWeekdays((prev) =>
+      prev.includes(d) ? prev.filter((x) => x !== d) : [...prev, d],
+    );
+  }
+
   async function handleSave() {
-    if (!name.trim()) return;
+    if (!canSave) return;
     setSaving(true);
     setErrorMsg("");
 
@@ -38,7 +53,13 @@ export function HabitModal({ initialHabit, userId, onSave, onDelete, onClose }: 
     if (initialHabit) {
       const { error } = await supabase
         .from("habits")
-        .update({ name: name.trim(), period, target_per_period: target, updated_at: now })
+        .update({
+          name: name.trim(),
+          period,
+          target_per_period: effectiveTarget,
+          weekdays: dbWeekdays,
+          updated_at: now,
+        })
         .eq("id", initialHabit.id);
 
       if (error) {
@@ -47,7 +68,13 @@ export function HabitModal({ initialHabit, userId, onSave, onDelete, onClose }: 
         return;
       }
 
-      onSave({ ...initialHabit, name: name.trim(), period, targetPerPeriod: target });
+      onSave({
+        ...initialHabit,
+        name: name.trim(),
+        period,
+        targetPerPeriod: effectiveTarget,
+        weekdays: dbWeekdays ?? [],
+      });
     } else {
       const id = crypto.randomUUID();
       const { error } = await supabase.from("habits").insert({
@@ -55,7 +82,8 @@ export function HabitModal({ initialHabit, userId, onSave, onDelete, onClose }: 
         user_id: userId,
         name: name.trim(),
         period,
-        target_per_period: target,
+        target_per_period: effectiveTarget,
+        weekdays: dbWeekdays,
       });
 
       if (error) {
@@ -68,7 +96,8 @@ export function HabitModal({ initialHabit, userId, onSave, onDelete, onClose }: 
         id,
         name: name.trim(),
         period,
-        targetPerPeriod: target,
+        targetPerPeriod: effectiveTarget,
+        weekdays: dbWeekdays ?? [],
         streak: 0,
         checkedToday: false,
         weekDots: [false, false, false, false, false, false, false],
@@ -141,8 +170,10 @@ export function HabitModal({ initialHabit, userId, onSave, onDelete, onClose }: 
               className="hb-select"
               value={period}
               onChange={(e) => {
-                setPeriod(e.target.value as HabitPeriod);
-                if (e.target.value === "day") setTarget(1);
+                const next = e.target.value as HabitPeriod;
+                setPeriod(next);
+                if (next === "day") setTarget(1);
+                if (next === "month" && target < 1) setTarget(1);
               }}
             >
               {PERIOD_OPTIONS.map((o) => (
@@ -151,8 +182,36 @@ export function HabitModal({ initialHabit, userId, onSave, onDelete, onClose }: 
             </select>
           </div>
 
-          {/* Cible (si non quotidien) */}
-          {period !== "day" && (
+          {/* Jours de la semaine (si hebdomadaire) */}
+          {period === "week" && (
+            <div className="hb-field">
+              <label className="hb-field-label">Jours de la semaine</label>
+              <div className="hb-weekdays" role="group" aria-label="Jours de la semaine">
+                {WEEKDAY_INITIALS.map((initial, d) => {
+                  const active = weekdays.includes(d);
+                  return (
+                    <button
+                      key={d}
+                      type="button"
+                      className={"hb-weekday" + (active ? " is-active" : "")}
+                      onClick={() => toggleWeekday(d)}
+                      aria-pressed={active}
+                      aria-label={WEEKDAY_LABELS[d]}
+                      title={WEEKDAY_LABELS[d]}
+                    >
+                      {initial}
+                    </button>
+                  );
+                })}
+              </div>
+              {weekdays.length === 0 && (
+                <div className="hb-field-hint">Choisis au moins un jour.</div>
+              )}
+            </div>
+          )}
+
+          {/* Cible (si mensuel) */}
+          {period === "month" && (
             <div className="hb-field">
               <label className="hb-field-label">Objectif</label>
               <div className="hb-target-row">
@@ -164,9 +223,7 @@ export function HabitModal({ initialHabit, userId, onSave, onDelete, onClose }: 
                   value={target}
                   onChange={(e) => setTarget(Math.max(1, parseInt(e.target.value, 10) || 1))}
                 />
-                <span className="hb-target-lbl">
-                  fois par {period === "week" ? "semaine" : "mois"}
-                </span>
+                <span className="hb-target-lbl">fois par mois</span>
               </div>
             </div>
           )}
@@ -204,7 +261,7 @@ export function HabitModal({ initialHabit, userId, onSave, onDelete, onClose }: 
                 type="button"
                 className="fp-save-btn"
                 onClick={handleSave}
-                disabled={!name.trim() || saving}
+                disabled={!canSave || saving}
               >
                 {saving ? "…" : "Enregistrer"}
               </button>
