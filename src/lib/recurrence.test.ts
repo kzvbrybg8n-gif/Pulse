@@ -1,5 +1,13 @@
 import { describe, expect, it } from "vitest";
-import { nextOccurrence, parseRRule } from "./recurrence";
+import {
+  buildMonthlyRule,
+  buildWeeklyRule,
+  describeRecurrence,
+  nextOccurrence,
+  parseRRule,
+  weekdayCodeOf,
+  weekdayCodesFromRule,
+} from "./recurrence";
 
 // Référence : lundi 1er juin 2026 à 09:00
 const BASE = new Date(2026, 5, 1, 9, 0, 0); // mois 0-indexé → 5 = juin
@@ -14,11 +22,22 @@ describe("parseRRule", () => {
   });
 
   it("FREQ=WEEKLY;BYDAY=MO", () => {
-    expect(parseRRule("FREQ=WEEKLY;BYDAY=MO")).toEqual({ freq: "WEEKLY", byDay: 1 });
+    expect(parseRRule("FREQ=WEEKLY;BYDAY=MO")).toEqual({ freq: "WEEKLY", byDays: [1] });
   });
 
   it("FREQ=WEEKLY;BYDAY=FR", () => {
-    expect(parseRRule("FREQ=WEEKLY;BYDAY=FR")).toEqual({ freq: "WEEKLY", byDay: 5 });
+    expect(parseRRule("FREQ=WEEKLY;BYDAY=FR")).toEqual({ freq: "WEEKLY", byDays: [5] });
+  });
+
+  it("FREQ=WEEKLY;BYDAY=MO,WE,FR (plusieurs jours, triés)", () => {
+    expect(parseRRule("FREQ=WEEKLY;BYDAY=FR,MO,WE")).toEqual({
+      freq: "WEEKLY",
+      byDays: [1, 3, 5],
+    });
+  });
+
+  it("FREQ=WEEKLY;BYDAY=MO,MO (dédupliqué)", () => {
+    expect(parseRRule("FREQ=WEEKLY;BYDAY=MO,MO")).toEqual({ freq: "WEEKLY", byDays: [1] });
   });
 
   it("FREQ=MONTHLY;BYMONTHDAY=1", () => {
@@ -82,6 +101,19 @@ describe("nextOccurrence — WEEKLY", () => {
     const next = nextOccurrence(spec, BASE);
     expect(next).toEqual(new Date(2026, 5, 7, 9, 0, 0)); // dimanche 7 juin
   });
+
+  it("lun/mer/ven depuis un lundi → mercredi (jour ciblé le plus proche)", () => {
+    const spec = parseRRule("FREQ=WEEKLY;BYDAY=MO,WE,FR");
+    const next = nextOccurrence(spec, BASE);
+    expect(next).toEqual(new Date(2026, 5, 3, 9, 0, 0)); // mercredi 3 juin
+  });
+
+  it("lun/mer/ven depuis un vendredi → lundi suivant", () => {
+    const friday = new Date(2026, 5, 5, 9, 0, 0); // vendredi 5 juin
+    const spec = parseRRule("FREQ=WEEKLY;BYDAY=MO,WE,FR");
+    const next = nextOccurrence(spec, friday);
+    expect(next).toEqual(new Date(2026, 5, 8, 9, 0, 0)); // lundi 8 juin
+  });
 });
 
 describe("nextOccurrence — MONTHLY", () => {
@@ -130,5 +162,40 @@ describe("nextOccurrence — MONTHLY", () => {
     const spec = parseRRule("FREQ=MONTHLY;BYMONTHDAY=29");
     const next = nextOccurrence(spec, from);
     expect(next).toEqual(new Date(2028, 1, 29, 9, 0, 0)); // 29 février existe
+  });
+});
+
+describe("helpers de construction / description", () => {
+  it("buildWeeklyRule ordonne lundi→dimanche", () => {
+    expect(buildWeeklyRule(["FR", "MO", "WE"])).toBe("FREQ=WEEKLY;BYDAY=MO,WE,FR");
+  });
+
+  it("buildWeeklyRule renvoie null si aucun jour", () => {
+    expect(buildWeeklyRule([])).toBeNull();
+  });
+
+  it("buildMonthlyRule clampe entre 1 et 31", () => {
+    expect(buildMonthlyRule(15)).toBe("FREQ=MONTHLY;BYMONTHDAY=15");
+    expect(buildMonthlyRule(99)).toBe("FREQ=MONTHLY;BYMONTHDAY=31");
+    expect(buildMonthlyRule(0)).toBe("FREQ=MONTHLY;BYMONTHDAY=1");
+  });
+
+  it("weekdayCodesFromRule extrait les jours ordonnés", () => {
+    expect(weekdayCodesFromRule("FREQ=WEEKLY;BYDAY=FR,MO")).toEqual(["MO", "FR"]);
+    expect(weekdayCodesFromRule("FREQ=DAILY")).toEqual([]);
+    expect(weekdayCodesFromRule(null)).toEqual([]);
+  });
+
+  it("weekdayCodeOf renvoie le code BYDAY d'une date", () => {
+    expect(weekdayCodeOf(new Date(2026, 5, 1))).toBe("MO"); // 1er juin = lundi
+    expect(weekdayCodeOf(new Date(2026, 5, 7))).toBe("SU"); // 7 juin = dimanche
+  });
+
+  it("describeRecurrence produit des libellés lisibles", () => {
+    expect(describeRecurrence(null)).toBe("Aucune");
+    expect(describeRecurrence("FREQ=DAILY")).toBe("Tous les jours");
+    expect(describeRecurrence("FREQ=DAILY;INTERVAL=2")).toBe("Tous les 2 jours");
+    expect(describeRecurrence("FREQ=WEEKLY;BYDAY=MO,WE")).toBe("Chaque lun, mer");
+    expect(describeRecurrence("FREQ=MONTHLY;BYMONTHDAY=15")).toBe("Le 15 du mois");
   });
 });

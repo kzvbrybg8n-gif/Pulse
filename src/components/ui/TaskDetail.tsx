@@ -17,8 +17,10 @@ import {
 } from "@/components/icons";
 import { Checkbox } from "@/components/ui/Checkbox";
 import { PriorityFlag } from "@/components/ui/PriorityFlag";
+import { RecurrencePicker } from "@/components/ui/RecurrencePicker";
 import { ensurePushSubscribed } from "@/components/ui/PushManager";
 import { createClient } from "@/lib/supabase/client";
+import { describeRecurrence } from "@/lib/recurrence";
 import type { Priority, Subtask, Task } from "@/lib/types";
 
 /* ── Types internes ──────────────────────────────────────── */
@@ -94,7 +96,6 @@ export function TaskDetail({ taskId, userId, onClose, onUpdate, onDelete }: Prop
   const [editingRemind, setEditingRemind] = useState(false);
   const [editRemind, setEditRemind] = useState("");
   const [editingRecur, setEditingRecur] = useState(false);
-  const [editRecur, setEditRecur] = useState("");
   const [newSubtask, setNewSubtask] = useState("");
   const [showTagInput, setShowTagInput] = useState(false);
   const [newTag, setNewTag] = useState("");
@@ -162,7 +163,6 @@ export function TaskDetail({ taskId, userId, onClose, onUpdate, onDelete }: Prop
         setDetail(d);
         setEditTitle(d.title);
         setEditNote(d.note ?? "");
-        setEditRecur(d.recur_rule ?? "");
       });
   }, [taskId, supabase]);
 
@@ -212,12 +212,11 @@ export function TaskDetail({ taskId, userId, onClose, onUpdate, onDelete }: Prop
     onUpdate(detail.id, { note: Boolean(note) });
   }
 
-  async function saveRecur() {
+  async function saveRecur(rule: string | null) {
     if (!detail) return;
-    const recur_rule = editRecur.trim() || null;
+    const recur_rule = rule;
     await supabase.from("tasks").update({ recur_rule }).eq("id", detail.id);
     setDetail((d) => d && { ...d, recur_rule });
-    setEditingRecur(false);
     onUpdate(detail.id, { recur: recur_rule });
   }
 
@@ -616,36 +615,29 @@ export function TaskDetail({ taskId, userId, onClose, onUpdate, onDelete }: Prop
             </div>
 
             {/* Récurrence */}
-            <div className="pd-prop">
+            <div className="pd-prop" style={{ flexWrap: "wrap" }}>
               <span className="pd-prop-ico">
                 <IconRepeat size={15} style={{ color: detail.recur_rule ? `var(--accent-text)` : undefined }} />
               </span>
               <span className="pd-prop-lbl">Récurrence</span>
-              {editingRecur ? (
-                <input
-                  type="text"
-                  className="pd-recur-input"
-                  placeholder="FREQ=DAILY"
-                  value={editRecur}
-                  autoFocus
-                  onChange={(e) => setEditRecur(e.target.value)}
-                  onBlur={() => void saveRecur()}
-                  onKeyDown={(e) => {
-                    if (e.key === "Enter") void saveRecur();
-                    if (e.key === "Escape") { setEditingRecur(false); setEditRecur(detail.recur_rule ?? ""); }
-                  }}
-                />
-              ) : (
-                <span
-                  className={"pd-prop-val " + (detail.recur_rule ? "" : "faint")}
-                  role="button"
-                  tabIndex={0}
-                  style={detail.recur_rule ? { color: "var(--accent-text)", fontFamily: "var(--font-mono)", fontSize: "12.5px" } : {}}
-                  onClick={() => setEditingRecur(true)}
-                  onKeyDown={(e) => e.key === "Enter" && setEditingRecur(true)}
-                >
-                  {detail.recur_rule ?? "Aucune"}
-                </span>
+              <span
+                className={"pd-prop-val " + (detail.recur_rule ? "" : "faint")}
+                role="button"
+                tabIndex={0}
+                style={detail.recur_rule ? { color: "var(--accent-text)" } : {}}
+                onClick={() => setEditingRecur((v) => !v)}
+                onKeyDown={(e) => e.key === "Enter" && setEditingRecur((v) => !v)}
+              >
+                {describeRecurrence(detail.recur_rule)}
+              </span>
+              {editingRecur && (
+                <div style={{ flexBasis: "100%", marginTop: 10 }}>
+                  <RecurrencePicker
+                    value={detail.recur_rule}
+                    onChange={(rule) => void saveRecur(rule)}
+                    referenceDate={detail.due_at ? new Date(detail.due_at) : null}
+                  />
+                </div>
               )}
             </div>
           </div>

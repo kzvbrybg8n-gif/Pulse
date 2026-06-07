@@ -358,22 +358,6 @@
   border-color: var(--accent);
 }
 
-/* Recurrence */
-.pd-recur-input {
-  font-family: var(--font-mono);
-  font-size: 11.5px;
-  color: var(--fg);
-  background: var(--bg-sunken);
-  border: 1px solid var(--border-strong);
-  border-radius: 5px;
-  padding: 3px 7px;
-  outline: none;
-  width: 200px;
-}
-.pd-recur-input:focus {
-  border-color: var(--accent);
-}
-
 /* ── Corps scrollable ────────────────────────────────────── */
 .pd-body {
   flex: 1;

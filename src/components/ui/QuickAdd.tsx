@@ -11,9 +11,11 @@ import {
   IconX,
 } from "@/components/icons";
 import { PriorityFlag } from "@/components/ui/PriorityFlag";
+import { RecurrencePicker } from "@/components/ui/RecurrencePicker";
 import { ensurePushSubscribed } from "@/components/ui/PushManager";
 import { createClient } from "@/lib/supabase/client";
 import { formatDueLabel } from "@/lib/tasks/fromDb";
+import { describeRecurrence } from "@/lib/recurrence";
 import { parseQuickAdd } from "@/lib/parseQuickAdd";
 import type { Priority, Task } from "@/lib/types";
 
@@ -33,15 +35,8 @@ const PRIO_LABELS: Record<Priority, string> = {
   4: "Aucune",
 };
 
-const RECUR_PRESETS = [
-  { label: "Quotidien", rule: "FREQ=DAILY" },
-  { label: "Hebdo", rule: "FREQ=WEEKLY" },
-  { label: "Mensuel", rule: "FREQ=MONTHLY" },
-  { label: "Tous les 2 jours", rule: "FREQ=DAILY;INTERVAL=2" },
-] as const;
-
 function recurLabel(rule: string): string {
-  return RECUR_PRESETS.find((p) => p.rule === rule)?.label ?? rule;
+  return describeRecurrence(rule);
 }
 
 /** datetime-local (valeur de l'input) → ISO UTC, ou null si vide. */
@@ -393,24 +388,11 @@ export function QuickAdd({ userId, listId = null, onAdd, defaultValue = "" }: Pr
 
       {panel === "recur" && (
         <div className="pk-qa-panel">
-          {RECUR_PRESETS.map(({ label, rule }) => (
-            <button
-              key={rule}
-              type="button"
-              className={"pk-qa-recur-preset" + (recurValue === rule ? " sel" : "")}
-              onClick={() => {
-                setRecurValue(recurValue === rule ? "" : rule);
-                setPanel(null);
-              }}
-            >
-              {label}
-            </button>
-          ))}
-          {recurValue && (
-            <button type="button" className="pk-qa-reset" onClick={() => setRecurValue("")}>
-              Effacer
-            </button>
-          )}
+          <RecurrencePicker
+            value={recurValue || null}
+            onChange={(rule) => setRecurValue(rule ?? "")}
+            referenceDate={eff.dueIso ? new Date(eff.dueIso) : null}
+          />
         </div>
       )}
 
